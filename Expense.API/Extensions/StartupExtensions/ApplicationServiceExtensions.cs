@@ -23,6 +23,7 @@ using Expense.Infrastructure.Groups;
 using Expense.Infrastructure.Expenses;
 using Expense.Infrastructure.Balances;
 using Expense.Infrastructure.Authentication.Social;
+using Expense.Infrastructure.Repositories;
 using Expense.Core.Abstractions.Persistence;
 
 namespace Expense.API.Extensions.StartupExtensions;
@@ -154,8 +155,6 @@ public static class ApplicationServiceExtensions
             }
         });
 
-        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
-
         // Configure Identity
         services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
         {
@@ -185,6 +184,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IBalanceService, BalanceService>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         
         // Social Auth
         services.AddHttpClient();

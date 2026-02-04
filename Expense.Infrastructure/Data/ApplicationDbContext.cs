@@ -2,13 +2,12 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.Domain.Entities;
-using Expense.Core.Abstractions.Persistence;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ExpenseEntity = Expense.Core.Domain.Entities.Expense;
 
 namespace Expense.Infrastructure.Data
 {
-	public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>, IApplicationDbContext
+	public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
 	{
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
 		{

@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Expense.Core.Abstractions.Expenses;
 using Expense.Core.DTOs.Expenses;
+using Expense.Core.DTOs.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,19 +22,19 @@ namespace Expense.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Guid groupId, [FromBody] CreateExpenseDto dto)
+        public async Task<ActionResult<APIResponse<ExpenseDto>>> Create(Guid groupId, [FromBody] CreateExpenseDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             var result = await _expenseService.CreateExpenseAsync(groupId, userId, dto);
-            return Ok(result);
+            return Ok(APIResponse<ExpenseDto>.SuccessResponse(result, "Expense created successfully"));
         }
 
         [HttpGet]
-        public async Task<IActionResult> List(Guid groupId)
+        public async Task<ActionResult<APIResponse<IEnumerable<ExpenseDto>>>> List(Guid groupId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             var result = await _expenseService.GetGroupExpensesAsync(groupId, userId);
-            return Ok(result);
+            return Ok(APIResponse<IEnumerable<ExpenseDto>>.SuccessResponse(result));
         }
     }
 }

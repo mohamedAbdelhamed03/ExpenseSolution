@@ -4,37 +4,52 @@ using System.Linq;
 using System.Threading.Tasks;
 using Expense.Core.Abstractions.Balances;
 using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Domain.Entities;
 using Expense.Core.DTOs.Balances;
 using Expense.Core.Common.Exceptions;
-using Microsoft.EntityFrameworkCore;
+using ExpenseEntity = Expense.Core.Domain.Entities.Expense;
 
 namespace Expense.Infrastructure.Balances
 {
     public class BalanceService : IBalanceService
     {
-        private readonly IApplicationDbContext _context;
-        public BalanceService(IApplicationDbContext context)
+        private readonly IUnitOfWork _unitOfWork;
+        
+        public BalanceService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<BalanceDto>> GetGroupBalancesAsync(Guid groupId, string requesterUserId)
         {
-            var isMember = await _context.GroupMembers.AnyAsync(m => m.GroupId == groupId && m.UserId == requesterUserId);
+            var isMember = await _unitOfWork.Repository<GroupMember>().Exists(m => m.GroupId == groupId && m.UserId == requesterUserId);
             if (!isMember) throw new BusinessException("Not a group member");
-            var members = await _context.GroupMembers.Where(m => m.GroupId == groupId).Select(m => m.UserId).ToListAsync();
-            var totalPaid = await _context.Expenses
-                .Where(e => e.GroupId == groupId)
+            
+            var members = (await _unitOfWork.Repository<GroupMember>()
+                .GetAll(m => m.GroupId == groupId))
+                .Select(m => m.UserId)
+                .ToList();
+
+            // Fetch all expenses for the group with splits
+            // Note: In a large system, this should be optimized to use a specialized repository method
+            // or a direct query to avoid loading all expenses into memory.
+            var expenses = await _unitOfWork.Repository<ExpenseEntity>()
+                .GetAll(e => e.GroupId == groupId, includes: new[] { "Splits" });
+            
+            var totalPaid = expenses
                 .GroupBy(e => e.PaidByUserId)
                 .Select(g => new { UserId = g.Key, Total = g.Sum(x => x.Amount) })
-                .ToListAsync();
-            var totalShared = await _context.ExpenseSplits
-                .Where(s => _context.Expenses.Where(e => e.GroupId == groupId).Select(e => e.Id).Contains(s.ExpenseId))
+                .ToList();
+
+            var totalShared = expenses
+                .SelectMany(e => e.Splits)
                 .GroupBy(s => s.UserId)
                 .Select(g => new { UserId = g.Key, Total = g.Sum(x => x.Amount) })
-                .ToListAsync();
+                .ToList();
+                
             var paidDict = totalPaid.ToDictionary(x => x.UserId, x => x.Total);
             var sharedDict = totalShared.ToDictionary(x => x.UserId, x => x.Total);
+            
             var balances = members.Select(u => new BalanceDto
             {
                 UserId = u,
@@ -42,6 +57,7 @@ namespace Expense.Infrastructure.Balances
                 TotalShared = sharedDict.TryGetValue(u, out var s) ? s : 0m,
                 Balance = (paidDict.TryGetValue(u, out var pp) ? pp : 0m) - (sharedDict.TryGetValue(u, out var ss) ? ss : 0m)
             }).ToList();
+            
             return balances;
         }
     }

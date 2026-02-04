@@ -1,4 +1,4 @@
-﻿using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Abstractions.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +9,7 @@ namespace Expense.Core.Abstractions.Persistence
 {
 	public interface IUnitOfWork
 	{
-
+		IRepository<T> Repository<T>() where T : class;
+		Task<int> SaveAsync(CancellationToken cancellationToken = default);
 	}
 }

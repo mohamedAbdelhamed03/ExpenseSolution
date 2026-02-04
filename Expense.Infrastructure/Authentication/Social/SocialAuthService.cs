@@ -6,7 +6,6 @@ using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;
 using Expense.Core.Common.Exceptions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,20 +16,20 @@ namespace Expense.Infrastructure.Authentication.Social
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtService _jwtService;
-        private readonly IApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IEnumerable<ISocialTokenValidator> _validators;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public SocialAuthService(
             UserManager<ApplicationUser> userManager,
             IJwtService jwtService,
-            IApplicationDbContext context,
+            IUnitOfWork unitOfWork,
             IEnumerable<ISocialTokenValidator> validators,
             IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _jwtService = jwtService;
-            _context = context;
+            _unitOfWork = unitOfWork;
             _validators = validators;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -146,8 +145,8 @@ namespace Expense.Infrastructure.Authentication.Social
                 CreatedByIp = ipAddress
             };
 
-            _context.RefreshTokens.Add(refreshTokenEntity);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Repository<RefreshToken>().Add(refreshTokenEntity);
+            await _unitOfWork.SaveAsync();
 
             return new LoginResponseDto
             {

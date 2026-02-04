@@ -30,26 +30,16 @@ namespace Expense.API.Controllers
         public async Task<ActionResult<APIResponse<LoginResponseDto>>> GoogleLogin([FromBody] SocialLoginDto loginDto)
         {
             if (loginDto.Provider != AuthProvider.Google)
-                return BadRequest(new APIResponse<LoginResponseDto> { Success = false, Message = "Invalid provider" });
+                return BadRequest(APIResponse<LoginResponseDto>.ErrorResponse("Invalid provider"));
 
             var result = await _socialAuthService.SocialLoginAsync(loginDto);
             
             if (result.Success)
             {
-                return Ok(new APIResponse<LoginResponseDto>
-                {
-                    Success = true,
-                    Message = result.Message,
-                    Data = result
-                });
+                return Ok(APIResponse<LoginResponseDto>.SuccessResponse(result, result.Message));
             }
 
-            return BadRequest(new APIResponse<LoginResponseDto>
-            {
-                Success = false,
-                Message = result.Message,
-                Data = result
-            });
+            return BadRequest(APIResponse<LoginResponseDto>.ErrorResponse(result.Message, result));
         }
 
         [HttpPost("facebook")]
@@ -60,26 +50,16 @@ namespace Expense.API.Controllers
         public async Task<ActionResult<APIResponse<LoginResponseDto>>> FacebookLogin([FromBody] SocialLoginDto loginDto)
         {
             if (loginDto.Provider != AuthProvider.Facebook)
-                return BadRequest(new APIResponse<LoginResponseDto> { Success = false, Message = "Invalid provider" });
+                return BadRequest(APIResponse<LoginResponseDto>.ErrorResponse("Invalid provider"));
 
             var result = await _socialAuthService.SocialLoginAsync(loginDto);
             
             if (result.Success)
             {
-                return Ok(new APIResponse<LoginResponseDto>
-                {
-                    Success = true,
-                    Message = result.Message,
-                    Data = result
-                });
+                return Ok(APIResponse<LoginResponseDto>.SuccessResponse(result, result.Message));
             }
 
-            return BadRequest(new APIResponse<LoginResponseDto>
-            {
-                Success = false,
-                Message = result.Message,
-                Data = result
-            });
+            return BadRequest(APIResponse<LoginResponseDto>.ErrorResponse(result.Message, result));
         }
 
         [HttpPost("register")]
@@ -93,20 +73,10 @@ namespace Expense.API.Controllers
             
             if (result.Success)
             {
-                return Ok(new APIResponse<RegisterResponseDto>
-                {
-                    Success = true,
-                    Message = result.Message,
-                    Data = result
-                });
+                return Ok(APIResponse<RegisterResponseDto>.SuccessResponse(result, result.Message));
             }
 
-            return BadRequest(new APIResponse<RegisterResponseDto>
-            {
-                Success = false,
-                Message = result.Message,
-                Data = result
-            });
+            return BadRequest(APIResponse<RegisterResponseDto>.ErrorResponse(result.Message, result));
         }
 
         [HttpPost("login")]
@@ -120,20 +90,10 @@ namespace Expense.API.Controllers
             
             if (result.Success)
             {
-                return Ok(new APIResponse<LoginResponseDto>
-                {
-                    Success = true,
-                    Message = result.Message,
-                    Data = result
-                });
+                return Ok(APIResponse<LoginResponseDto>.SuccessResponse(result, result.Message));
             }
 
-            return Unauthorized(new APIResponse<LoginResponseDto>
-            {
-                Success = false,
-                Message = result.Message,
-                Data = result
-            });
+            return Unauthorized(APIResponse<LoginResponseDto>.ErrorResponse(result.Message, result, statusCode: 401));
         }
 
         [HttpPost("refresh")]
@@ -147,20 +107,10 @@ namespace Expense.API.Controllers
             
             if (result.Success)
             {
-                return Ok(new APIResponse<RefreshTokenResponseDto>
-                {
-                    Success = true,
-                    Message = result.Message,
-                    Data = result
-                });
+                return Ok(APIResponse<RefreshTokenResponseDto>.SuccessResponse(result, result.Message));
             }
 
-            return Unauthorized(new APIResponse<RefreshTokenResponseDto>
-            {
-                Success = false,
-                Message = result.Message,
-                Data = result
-            });
+            return Unauthorized(APIResponse<RefreshTokenResponseDto>.ErrorResponse(result.Message, result, statusCode: 401));
         }
 
         [HttpPost("logout")]
@@ -173,29 +123,17 @@ namespace Expense.API.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new APIResponse<object>
-                {
-                    Success = false,
-                    Message = "Invalid user"
-                });
+                return Unauthorized(APIResponse<object>.ErrorResponse("Invalid user", statusCode: 401));
             }
 
             var result = await _authService.RevokeTokenAsync(userId);
             
             if (result)
             {
-                return Ok(new APIResponse<object>
-                {
-                    Success = true,
-                    Message = "Logout successful"
-                });
+                return Ok(APIResponse<object>.SuccessResponse(null, "Logout successful"));
             }
 
-            return BadRequest(new APIResponse<object>
-            {
-                Success = false,
-                Message = "Logout failed"
-            });
+            return BadRequest(APIResponse<object>.ErrorResponse("Logout failed"));
         }
 
         [HttpPost("revoke-refresh-token")]
@@ -208,29 +146,17 @@ namespace Expense.API.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new APIResponse<object>
-                {
-                    Success = false,
-                    Message = "Invalid user"
-                });
+                return Unauthorized(APIResponse<object>.ErrorResponse("Invalid user", statusCode: 401));
             }
 
             var result = await _authService.RevokeRefreshTokenAsync(userId, refreshToken);
             
             if (result)
             {
-                return Ok(new APIResponse<object>
-                {
-                    Success = true,
-                    Message = "Refresh token revoked successfully"
-                });
+                return Ok(APIResponse<object>.SuccessResponse(null, "Refresh token revoked successfully"));
             }
 
-            return BadRequest(new APIResponse<object>
-            {
-                Success = false,
-                Message = "Failed to revoke refresh token"
-            });
+            return BadRequest(APIResponse<object>.ErrorResponse("Failed to revoke refresh token"));
         }
 
         [HttpPost("change-password")]
@@ -244,29 +170,17 @@ namespace Expense.API.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new APIResponse<object>
-                {
-                    Success = false,
-                    Message = "Invalid user"
-                });
+                return Unauthorized(APIResponse<object>.ErrorResponse("Invalid user", statusCode: 401));
             }
 
             var result = await _authService.ChangePasswordAsync(userId, changePasswordDto);
             
             if (result)
             {
-                return Ok(new APIResponse<object>
-                {
-                    Success = true,
-                    Message = "Password changed successfully"
-                });
+                return Ok(APIResponse<object>.SuccessResponse(null, "Password changed successfully"));
             }
 
-            return BadRequest(new APIResponse<object>
-                {
-                    Success = false,
-                    Message = "Password change failed"
-                });
+            return BadRequest(APIResponse<object>.ErrorResponse("Password change failed"));
         }
 
         [HttpPost("forgot-password")]
@@ -277,11 +191,7 @@ namespace Expense.API.Controllers
         {
             var result = await _authService.ForgotPasswordAsync(forgotPasswordDto);
             
-            return Ok(new APIResponse<object>
-            {
-                Success = true,
-                Message = "If the email exists, a password reset link has been sent"
-            });
+            return Ok(APIResponse<object>.SuccessResponse(null, "If the email exists, a password reset link has been sent"));
         }
 
         [HttpPost("reset-password")]
@@ -295,18 +205,10 @@ namespace Expense.API.Controllers
             
             if (result)
             {
-                return Ok(new APIResponse<object>
-                {
-                    Success = true,
-                    Message = "Password reset successful"
-                });
+                return Ok(APIResponse<object>.SuccessResponse(null, "Password reset successful"));
             }
 
-            return BadRequest(new APIResponse<object>
-            {
-                Success = false,
-                Message = "Password reset failed"
-            });
+            return BadRequest(APIResponse<object>.ErrorResponse("Password reset failed"));
         }
 
         [HttpGet("me")]

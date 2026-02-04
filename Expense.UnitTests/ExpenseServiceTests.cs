@@ -7,6 +7,7 @@ using Expense.Core.DTOs.Expenses;
 using Expense.Core.Common.Exceptions;
 using Expense.Infrastructure.Data;
 using Expense.Infrastructure.Expenses;
+using Expense.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using ExpenseEntity = Expense.Core.Domain.Entities.Expense;
@@ -36,7 +37,7 @@ namespace Expense.UnitTests
             context.GroupMembers.Add(member);
             await context.SaveChangesAsync();
 
-            var service = new ExpenseService(context);
+            var service = new ExpenseService(new UnitOfWork(context));
             var dto = new CreateExpenseDto
             {
                 Amount = 100,
@@ -69,7 +70,7 @@ namespace Expense.UnitTests
             // Arrange
             var dbName = Guid.NewGuid().ToString();
             using var context = CreateContext(dbName);
-            var service = new ExpenseService(context);
+            var service = new ExpenseService(new UnitOfWork(context));
             var dto = new CreateExpenseDto { Amount = 100 };
 
             // Act & Assert
@@ -89,7 +90,7 @@ namespace Expense.UnitTests
             context.GroupMembers.Add(member);
             await context.SaveChangesAsync();
 
-            var service = new ExpenseService(context);
+            var service = new ExpenseService(new UnitOfWork(context));
             var dto = new CreateExpenseDto
             {
                 Amount = 100,

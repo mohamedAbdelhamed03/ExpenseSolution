@@ -24,7 +24,6 @@ namespace Expense.Infrastructure.Repositories
 		public async Task<T> Add(T entity)
 		{
 			await dbSet.AddAsync(entity);
-			await _db.SaveChangesAsync();
 			return entity;
 		}
 
@@ -71,24 +70,23 @@ namespace Expense.Infrastructure.Repositories
 		public async Task<bool> Remove(T entity)
 		{
 			dbSet.Remove(entity);
-			int rowsDeleted = await _db.SaveChangesAsync();
-			return rowsDeleted > 0;
-
+			return true;
 		}
 
 		public async Task<bool> RemoveRange(IEnumerable<T> entity)
 		{
 			dbSet.RemoveRange(entity);
-
-			int rowsDeleted = await _db.SaveChangesAsync();
-			return rowsDeleted > 0;
+			return true;
 		}
 		public async Task<T> Update(T entity)
 		{
 			dbSet.Update(entity);
-			await _db.SaveChangesAsync();
 			return entity;
+		}
 
+		public async Task<bool> Exists(Expression<Func<T, bool>> filter)
+		{
+			return await dbSet.AnyAsync(filter);
 		}
 
 

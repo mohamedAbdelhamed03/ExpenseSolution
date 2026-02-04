@@ -1,5 +1,9 @@
+using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Expense.Core.Abstractions.Balances;
+using Expense.Core.DTOs.Balances;
+using Expense.Core.DTOs.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,11 +21,11 @@ namespace Expense.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(Guid groupId)
+        public async Task<ActionResult<APIResponse<IEnumerable<BalanceDto>>>> Get(Guid groupId)
         {
-            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier) ?? string.Empty;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             var result = await _balanceService.GetGroupBalancesAsync(groupId, userId);
-            return Ok(result);
+            return Ok(APIResponse<IEnumerable<BalanceDto>>.SuccessResponse(result));
         }
     }
 }

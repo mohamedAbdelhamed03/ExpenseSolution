@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,5 +16,6 @@ namespace Expense.Core.Abstractions.Persistence
 		Task<T> Update(T entity);
 		Task<bool> Remove(T entity);
 		Task<bool> RemoveRange(IEnumerable<T> entity);
+		Task<bool> Exists(Expression<Func<T, bool>> filter);
 	}
 }

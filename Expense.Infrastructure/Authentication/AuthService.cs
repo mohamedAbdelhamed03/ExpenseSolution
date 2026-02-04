@@ -5,7 +5,6 @@ using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Expense.Core.Abstractions.Authentication;
 using Expense.Core.Abstractions.Persistence;
@@ -17,20 +16,20 @@ namespace Expense.Infrastructure.Authentication
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IJwtService _jwtService;
-        private readonly IApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IJwtService jwtService,
-            IApplicationDbContext context,
+            IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _jwtService = jwtService;
-            _context = context;
+            _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -112,8 +111,8 @@ namespace Expense.Infrastructure.Authentication
                 CreatedByIp = ipAddress
             };
 
-            _context.RefreshTokens.Add(refreshTokenEntity);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Repository<RefreshToken>().Add(refreshTokenEntity);
+            await _unitOfWork.SaveAsync();
 
             return new LoginResponseDto
             {
@@ -151,8 +150,8 @@ namespace Expense.Infrastructure.Authentication
             }
 
             var hashedIncomingToken = HashToken(refreshTokenDto.RefreshToken);
-            var storedRefreshToken = await _context.RefreshTokens
-                .FirstOrDefaultAsync(rt => rt.Token == hashedIncomingToken && rt.UserId == userId);
+            var storedRefreshToken = await _unitOfWork.Repository<RefreshToken>()
+                .Get(rt => rt.Token == hashedIncomingToken && rt.UserId == userId);
 
             if (storedRefreshToken == null || storedRefreshToken.IsRevoked || storedRefreshToken.ExpiresAt < DateTime.UtcNow)
             {
@@ -191,8 +190,8 @@ namespace Expense.Infrastructure.Authentication
                 ReplacedByToken = storedRefreshToken.Token
             };
 
-            _context.RefreshTokens.Add(newRefreshTokenEntity);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Repository<RefreshToken>().Add(newRefreshTokenEntity);
+            await _unitOfWork.SaveAsync();
 
             return new RefreshTokenResponseDto
             {
@@ -218,9 +217,8 @@ namespace Expense.Infrastructure.Authentication
             if (result.Succeeded)
             {
                 // Revoke all refresh tokens for this user
-                var refreshTokens = await _context.RefreshTokens
-                    .Where(rt => rt.UserId == userId && !rt.IsRevoked)
-                    .ToListAsync();
+                var refreshTokens = await _unitOfWork.Repository<RefreshToken>()
+                    .GetAll(rt => rt.UserId == userId && !rt.IsRevoked);
 
                 foreach (var token in refreshTokens)
                 {
@@ -229,7 +227,7 @@ namespace Expense.Infrastructure.Authentication
                     token.RevokedByIp = GetIpAddress();
                 }
 
-                await _context.SaveChangesAsync();
+                await _unitOfWork.SaveAsync();
                 return true;
             }
 
@@ -239,8 +237,8 @@ namespace Expense.Infrastructure.Authentication
         public async Task<bool> RevokeRefreshTokenAsync(string userId, string refreshToken)
         {
             var hashedIncomingToken = HashToken(refreshToken);
-            var storedToken = await _context.RefreshTokens
-                .FirstOrDefaultAsync(rt => rt.Token == hashedIncomingToken && rt.UserId == userId);
+            var storedToken = await _unitOfWork.Repository<RefreshToken>()
+                .Get(rt => rt.Token == hashedIncomingToken && rt.UserId == userId);
 
             if (storedToken == null || storedToken.IsRevoked)
             {
@@ -251,7 +249,7 @@ namespace Expense.Infrastructure.Authentication
             storedToken.RevokedAt = DateTime.UtcNow;
             storedToken.RevokedByIp = GetIpAddress();
 
-            await _context.SaveChangesAsync();
+            await _unitOfWork.SaveAsync();
             return true;
         }
 

@@ -21,7 +21,7 @@ namespace Expense.UnitTests
     {
         private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
         private readonly Mock<IJwtService> _jwtServiceMock;
-        private readonly Mock<IApplicationDbContext> _dbContextMock;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly List<ISocialTokenValidator> _validators;
         private readonly Mock<ISocialTokenValidator> _googleValidatorMock;
@@ -32,7 +32,7 @@ namespace Expense.UnitTests
             var store = new Mock<IUserStore<ApplicationUser>>();
             _userManagerMock = new Mock<UserManager<ApplicationUser>>(store.Object, null, null, null, null, null, null, null, null);
             _jwtServiceMock = new Mock<IJwtService>();
-            _dbContextMock = new Mock<IApplicationDbContext>();
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             
             _googleValidatorMock = new Mock<ISocialTokenValidator>();
@@ -40,12 +40,13 @@ namespace Expense.UnitTests
             
             _validators = new List<ISocialTokenValidator> { _googleValidatorMock.Object };
 
-            _dbContextMock.Setup(d => d.RefreshTokens).Returns(new Mock<DbSet<RefreshToken>>().Object);
+            var refreshTokenRepoMock = new Mock<IRepository<RefreshToken>>();
+            _unitOfWorkMock.Setup(u => u.Repository<RefreshToken>()).Returns(refreshTokenRepoMock.Object);
 
             _service = new SocialAuthService(
                 _userManagerMock.Object,
                 _jwtServiceMock.Object,
-                _dbContextMock.Object,
+                _unitOfWorkMock.Object,
                 _validators,
                 _httpContextAccessorMock.Object
             );
