@@ -1,131 +1,125 @@
 using Expense.Core.DTOs.Auth;
-using Expense.Core.Features.Common;
 using FluentValidation;
-using Microsoft.Extensions.Localization;
 
 namespace Expense.Core.Features.Auth.Validators
 {
-    // Marker class for resources
-    public class AuthDtoValidators { }
-
-    public class RegisterDtoValidator : LocalizedAbstractValidator<RegisterDto>
+    public class RegisterDtoValidator : AbstractValidator<RegisterDto>
     {
-        public RegisterDtoValidator(IStringLocalizer<AuthDtoValidators> localizer) : base(localizer)
+        public RegisterDtoValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage(_localizer["EmailRequired"])
-                .EmailAddress().WithMessage(_localizer["EmailInvalid"]);
+                .NotEmpty().WithErrorCode("Auth.Email.Required")
+                .EmailAddress().WithErrorCode("Auth.Email.Invalid");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage(_localizer["PasswordRequired"])
-                .MinimumLength(6).WithMessage(_localizer["PasswordMinLength"])
-                .Matches(@"[A-Z]").WithMessage(_localizer["PasswordUppercase"])
-                .Matches(@"[a-z]").WithMessage(_localizer["PasswordLowercase"])
-                .Matches(@"[0-9]").WithMessage(_localizer["PasswordDigit"]);
+                .NotEmpty().WithErrorCode("Auth.Password.Required")
+                .MinimumLength(6).WithErrorCode("Auth.Password.MinLength")
+                .Matches(@"[A-Z]").WithErrorCode("Auth.Password.Uppercase")
+                .Matches(@"[a-z]").WithErrorCode("Auth.Password.Lowercase")
+                .Matches(@"[0-9]").WithErrorCode("Auth.Password.Digit");
 
             RuleFor(x => x.ConfirmPassword)
-                .Equal(x => x.Password).WithMessage(_localizer["PasswordsDoNotMatch"]);
+                .Equal(x => x.Password).WithErrorCode("Auth.Password.Mismatch");
 
             RuleFor(x => x.FirstName)
-                .NotEmpty().WithMessage(_localizer["FirstNameRequired"])
-                .MaximumLength(50).WithMessage(_localizer["FirstNameMaxLength"]);
+                .NotEmpty().WithErrorCode("Auth.FirstName.Required")
+                .MaximumLength(50).WithErrorCode("Auth.FirstName.MaxLength");
 
             RuleFor(x => x.LastName)
-                .NotEmpty().WithMessage(_localizer["LastNameRequired"])
-                .MaximumLength(50).WithMessage(_localizer["LastNameMaxLength"]);
+                .NotEmpty().WithErrorCode("Auth.LastName.Required")
+                .MaximumLength(50).WithErrorCode("Auth.LastName.MaxLength");
 
             RuleFor(x => x.PhoneNumber)
-                .MaximumLength(20).WithMessage(_localizer["PhoneNumberMaxLength"])
+                .MaximumLength(20).WithErrorCode("Auth.PhoneNumber.MaxLength")
                 .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
         }
     }
 
-    public class LoginDtoValidator : LocalizedAbstractValidator<LoginDto>
+    public class LoginDtoValidator : AbstractValidator<LoginDto>
     {
-        public LoginDtoValidator(IStringLocalizer<AuthDtoValidators> localizer) : base(localizer)
+        public LoginDtoValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage(_localizer["EmailRequired"])
-                .EmailAddress().WithMessage(_localizer["EmailInvalid"]);
+                .NotEmpty().WithErrorCode("Auth.Email.Required")
+                .EmailAddress().WithErrorCode("Auth.Email.Invalid");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage(_localizer["PasswordRequired"]);
+                .NotEmpty().WithErrorCode("Auth.Password.Required");
         }
     }
 
-    public class RefreshTokenDtoValidator : LocalizedAbstractValidator<RefreshTokenDto>
+    public class RefreshTokenDtoValidator : AbstractValidator<RefreshTokenDto>
     {
-        public RefreshTokenDtoValidator(IStringLocalizer<AuthDtoValidators> localizer) : base(localizer)
+        public RefreshTokenDtoValidator()
         {
             RuleFor(x => x.AccessToken)
-                .NotEmpty().WithMessage(_localizer["AccessTokenRequired"]);
+                .NotEmpty().WithErrorCode("Auth.Token.AccessRequired");
 
             RuleFor(x => x.RefreshToken)
-                .NotEmpty().WithMessage(_localizer["RefreshTokenRequired"]);
+                .NotEmpty().WithErrorCode("Auth.Token.RefreshRequired");
         }
     }
 
-    public class ChangePasswordDtoValidator : LocalizedAbstractValidator<ChangePasswordDto>
+    public class ChangePasswordDtoValidator : AbstractValidator<ChangePasswordDto>
     {
-        public ChangePasswordDtoValidator(IStringLocalizer<AuthDtoValidators> localizer) : base(localizer)
+        public ChangePasswordDtoValidator()
         {
             RuleFor(x => x.CurrentPassword)
-                .NotEmpty().WithMessage(_localizer["CurrentPasswordRequired"]);
+                .NotEmpty().WithErrorCode("Auth.Password.CurrentRequired");
 
             RuleFor(x => x.NewPassword)
-                .NotEmpty().WithMessage(_localizer["NewPasswordRequired"])
-                .MinimumLength(6).WithMessage(_localizer["PasswordMinLength"])
-                .Matches(@"[A-Z]").WithMessage(_localizer["PasswordUppercase"])
-                .Matches(@"[a-z]").WithMessage(_localizer["PasswordLowercase"])
-                .Matches(@"[0-9]").WithMessage(_localizer["PasswordDigit"]);
+                .NotEmpty().WithErrorCode("Auth.Password.NewRequired")
+                .MinimumLength(6).WithErrorCode("Auth.Password.MinLength")
+                .Matches(@"[A-Z]").WithErrorCode("Auth.Password.Uppercase")
+                .Matches(@"[a-z]").WithErrorCode("Auth.Password.Lowercase")
+                .Matches(@"[0-9]").WithErrorCode("Auth.Password.Digit");
 
             RuleFor(x => x.ConfirmPassword)
-                .Equal(x => x.NewPassword).WithMessage(_localizer["PasswordsDoNotMatch"]);
+                .Equal(x => x.NewPassword).WithErrorCode("Auth.Password.Mismatch");
         }
     }
 
-    public class SocialLoginDtoValidator : LocalizedAbstractValidator<SocialLoginDto>
+    public class SocialLoginDtoValidator : AbstractValidator<SocialLoginDto>
     {
-        public SocialLoginDtoValidator(IStringLocalizer<AuthDtoValidators> localizer) : base(localizer)
+        public SocialLoginDtoValidator()
         {
             RuleFor(x => x.Token)
-                .NotEmpty().WithMessage(_localizer["TokenRequired"]);
+                .NotEmpty().WithErrorCode("Auth.Token.Required");
 
             RuleFor(x => x.Provider)
-                .IsInEnum().WithMessage(_localizer["ProviderInvalid"]);
+                .IsInEnum().WithErrorCode("Auth.Provider.Invalid");
         }
     }
-
-    public class ResetPasswordDtoValidator : LocalizedAbstractValidator<ResetPasswordDto>
+    public class ResetPasswordDtoValidator : AbstractValidator<ResetPasswordDto>
     {
-        public ResetPasswordDtoValidator(IStringLocalizer<AuthDtoValidators> localizer) : base(localizer)
+        public ResetPasswordDtoValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage(_localizer["EmailRequired"])
-                .EmailAddress().WithMessage(_localizer["EmailInvalid"]);
+                .NotEmpty().WithErrorCode("Auth.Email.Required")
+                .EmailAddress().WithErrorCode("Auth.Email.Invalid");
 
             RuleFor(x => x.Token)
-                .NotEmpty().WithMessage(_localizer["TokenRequired"]);
+                .NotEmpty().WithErrorCode("Auth.Token.Required");
 
             RuleFor(x => x.NewPassword)
-                .NotEmpty().WithMessage(_localizer["NewPasswordRequired"])
-                .MinimumLength(6).WithMessage(_localizer["PasswordMinLength"])
-                .Matches(@"[A-Z]").WithMessage(_localizer["PasswordUppercase"])
-                .Matches(@"[a-z]").WithMessage(_localizer["PasswordLowercase"])
-                .Matches(@"[0-9]").WithMessage(_localizer["PasswordDigit"]);
+                .NotEmpty().WithErrorCode("Auth.Password.NewRequired")
+                .MinimumLength(6).WithErrorCode("Auth.Password.MinLength")
+                .Matches(@"[A-Z]").WithErrorCode("Auth.Password.Uppercase")
+                .Matches(@"[a-z]").WithErrorCode("Auth.Password.Lowercase")
+                .Matches(@"[0-9]").WithErrorCode("Auth.Password.Digit");
                 
             RuleFor(x => x.ConfirmPassword)
-                .Equal(x => x.NewPassword).WithMessage(_localizer["PasswordsDoNotMatch"]);
+                .Equal(x => x.NewPassword).WithErrorCode("Auth.Password.Mismatch");
         }
     }
 
-    public class ForgotPasswordDtoValidator : LocalizedAbstractValidator<ForgotPasswordDto>
+    public class ForgotPasswordDtoValidator : AbstractValidator<ForgotPasswordDto>
     {
-        public ForgotPasswordDtoValidator(IStringLocalizer<AuthDtoValidators> localizer) : base(localizer)
+        public ForgotPasswordDtoValidator()
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage(_localizer["EmailRequired"])
-                .EmailAddress().WithMessage(_localizer["EmailInvalid"]);
+                .NotEmpty().WithErrorCode("Auth.Email.Required")
+                .EmailAddress().WithErrorCode("Auth.Email.Invalid");
         }
     }
 }

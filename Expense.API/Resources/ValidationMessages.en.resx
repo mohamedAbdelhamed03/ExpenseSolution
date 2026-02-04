@@ -58,61 +58,85 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="EmailRequired" xml:space="preserve">
+  <data name="Auth.Email.Required" xml:space="preserve">
     <value>Email is required</value>
   </data>
-  <data name="EmailInvalid" xml:space="preserve">
-    <value>Invalid email format</value>
+  <data name="Auth.Email.Invalid" xml:space="preserve">
+    <value>Email is invalid</value>
   </data>
-  <data name="PasswordRequired" xml:space="preserve">
+  <data name="Auth.Password.Required" xml:space="preserve">
     <value>Password is required</value>
   </data>
-  <data name="PasswordMinLength" xml:space="preserve">
+  <data name="Auth.Password.MinLength" xml:space="preserve">
     <value>Password must be at least 6 characters</value>
   </data>
-  <data name="PasswordUppercase" xml:space="preserve">
+  <data name="Auth.Password.Uppercase" xml:space="preserve">
     <value>Password must contain at least one uppercase letter</value>
   </data>
-  <data name="PasswordLowercase" xml:space="preserve">
+  <data name="Auth.Password.Lowercase" xml:space="preserve">
     <value>Password must contain at least one lowercase letter</value>
   </data>
-  <data name="PasswordDigit" xml:space="preserve">
+  <data name="Auth.Password.Digit" xml:space="preserve">
     <value>Password must contain at least one digit</value>
   </data>
-  <data name="PasswordsDoNotMatch" xml:space="preserve">
+  <data name="Auth.Password.Mismatch" xml:space="preserve">
     <value>Passwords do not match</value>
   </data>
-  <data name="FirstNameRequired" xml:space="preserve">
+  <data name="Auth.FirstName.Required" xml:space="preserve">
     <value>First name is required</value>
   </data>
-  <data name="FirstNameMaxLength" xml:space="preserve">
+  <data name="Auth.FirstName.MaxLength" xml:space="preserve">
     <value>First name must not exceed 50 characters</value>
   </data>
-  <data name="LastNameRequired" xml:space="preserve">
+  <data name="Auth.LastName.Required" xml:space="preserve">
     <value>Last name is required</value>
   </data>
-  <data name="LastNameMaxLength" xml:space="preserve">
+  <data name="Auth.LastName.MaxLength" xml:space="preserve">
     <value>Last name must not exceed 50 characters</value>
   </data>
-  <data name="PhoneNumberMaxLength" xml:space="preserve">
+  <data name="Auth.PhoneNumber.MaxLength" xml:space="preserve">
     <value>Phone number must not exceed 20 characters</value>
   </data>
-  <data name="CurrentPasswordRequired" xml:space="preserve">
-    <value>Current password is required</value>
-  </data>
-  <data name="NewPasswordRequired" xml:space="preserve">
-    <value>New password is required</value>
-  </data>
-  <data name="TokenRequired" xml:space="preserve">
-    <value>Reset token is required</value>
-  </data>
-  <data name="AccessTokenRequired" xml:space="preserve">
+  <data name="Auth.Token.AccessRequired" xml:space="preserve">
     <value>Access token is required</value>
   </data>
-  <data name="RefreshTokenRequired" xml:space="preserve">
+  <data name="Auth.Token.RefreshRequired" xml:space="preserve">
     <value>Refresh token is required</value>
   </data>
-  <data name="ProviderInvalid" xml:space="preserve">
+  <data name="Auth.Password.CurrentRequired" xml:space="preserve">
+    <value>Current password is required</value>
+  </data>
+  <data name="Auth.Password.NewRequired" xml:space="preserve">
+    <value>New password is required</value>
+  </data>
+  <data name="Auth.Token.Required" xml:space="preserve">
+    <value>Token is required</value>
+  </data>
+  <data name="Auth.Provider.Invalid" xml:space="preserve">
     <value>Invalid authentication provider</value>
+  </data>
+  <data name="Expense.Amount.Positive" xml:space="preserve">
+    <value>Amount must be greater than zero</value>
+  </data>
+  <data name="Expense.Description.MaxLength" xml:space="preserve">
+    <value>Description must not exceed 500 characters</value>
+  </data>
+  <data name="Expense.Date.Required" xml:space="preserve">
+    <value>Date is required</value>
+  </data>
+  <data name="Expense.Splits.Required" xml:space="preserve">
+    <value>Splits are required</value>
+  </data>
+  <data name="Expense.Split.UserId.Required" xml:space="preserve">
+    <value>Split user ID is required</value>
+  </data>
+  <data name="Expense.Split.Amount.Positive" xml:space="preserve">
+    <value>Split amount must be greater than zero</value>
+  </data>
+  <data name="Group.Name.Required" xml:space="preserve">
+    <value>Group name is required</value>
+  </data>
+  <data name="Group.Name.MaxLength" xml:space="preserve">
+    <value>Group name must not exceed 100 characters</value>
   </data>
 </root>

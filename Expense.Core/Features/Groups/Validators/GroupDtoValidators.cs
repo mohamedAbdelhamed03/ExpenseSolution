@@ -1,19 +1,15 @@
 using Expense.Core.DTOs.Groups;
-using Expense.Core.Features.Common;
 using FluentValidation;
-using Microsoft.Extensions.Localization;
 
 namespace Expense.Core.Features.Groups.Validators
 {
-    public class GroupDtoValidators { }
-
-    public class CreateGroupDtoValidator : LocalizedAbstractValidator<CreateGroupDto>
+    public class CreateGroupDtoValidator : AbstractValidator<CreateGroupDto>
     {
-        public CreateGroupDtoValidator(IStringLocalizer<GroupDtoValidators> localizer) : base(localizer)
+        public CreateGroupDtoValidator()
         {
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage(_localizer["NameRequired"])
-                .MaximumLength(100).WithMessage(_localizer["NameMaxLength"]);
+                .NotEmpty().WithErrorCode("Group.Name.Required")
+                .MaximumLength(100).WithErrorCode("Group.Name.MaxLength");
         }
     }
 }

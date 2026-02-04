@@ -6,6 +6,8 @@ using System.Text.Json;
 using FluentValidation;
 using Expense.Core.DTOs.Shared;
 using Expense.Core.Common.Exceptions;
+using Microsoft.Extensions.Localization;
+using Expense.API.Resources;
 
 namespace Expense.API.Middlewares
 {
@@ -14,15 +16,21 @@ namespace Expense.API.Middlewares
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
         private readonly IHostEnvironment _environment;
+        private readonly IStringLocalizer<ValidationMessages> _localizer;
+        private readonly IStringLocalizer<ErrorMessages> _errorLocalizer;
 
         public GlobalExceptionHandlerMiddleware(
             RequestDelegate next, 
             ILogger<GlobalExceptionHandlerMiddleware> logger,
-            IHostEnvironment environment)
+            IHostEnvironment environment,
+            IStringLocalizer<ValidationMessages> localizer,
+            IStringLocalizer<ErrorMessages> errorLocalizer)
         {
             _next = next;
             _logger = logger;
             _environment = environment;
+            _localizer = localizer;
+            _errorLocalizer = errorLocalizer;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -79,7 +87,11 @@ namespace Expense.API.Middlewares
                     statusCode = (int)HttpStatusCode.BadRequest;
                     var validationErrors = validationEx.Errors
                         .GroupBy(e => e.PropertyName.StartsWith("Request.") ? e.PropertyName.Substring(8) : e.PropertyName)
-                        .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+                        .ToDictionary(g => g.Key, g => g.Select(e => 
+                        {
+                            var localizedString = _localizer[e.ErrorCode];
+                            return localizedString.ResourceNotFound ? e.ErrorMessage : localizedString.Value;
+                        }).ToArray());
 
                     response = new APIResponse<object>
                     {
@@ -94,19 +106,29 @@ namespace Expense.API.Middlewares
                     _logger.LogWarning(exception, "ValidationException: {Message}, TraceId: {TraceId}", validationEx.Message, context.TraceIdentifier);
                     break;
 
-                case BusinessException businessEx:
-                    statusCode = (int)HttpStatusCode.BadRequest;
+                case DomainException domainEx:
+                    var localizedString = _errorLocalizer[domainEx.ErrorCode];
+                    var message = localizedString.ResourceNotFound ? domainEx.ErrorCode : localizedString.Value;
+                    
+                    statusCode = domainEx switch
+                    {
+                        NotFoundException => (int)HttpStatusCode.NotFound,
+                        AccessDeniedException => (int)HttpStatusCode.Forbidden,
+                        _ => (int)HttpStatusCode.BadRequest
+                    };
+
                     response = new APIResponse<object>
                     {
                         Success = false,
                         Data = null,
                         StatusCode = statusCode,
-                        Message = businessEx.Message, // Always show message for business exceptions
-                        Errors = new List<string> { businessEx.Message },
-                        TraceId = context.TraceIdentifier
+                        Message = message,
+                        Errors = new List<string> { message },
+                        TraceId = context.TraceIdentifier,
+                        Meta = new Dictionary<string, object> { { "ErrorCode", domainEx.ErrorCode } }
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "BusinessException: {Message}, TraceId: {TraceId}", businessEx.Message, context.TraceIdentifier);
+                    _logger.LogWarning(exception, "DomainException: {ErrorCode} - {Message}, TraceId: {TraceId}", domainEx.ErrorCode, message, context.TraceIdentifier);
                     break;
 
                 case ArgumentNullException argNullEx:
