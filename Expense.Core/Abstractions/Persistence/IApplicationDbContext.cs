@@ -1,7 +1,7 @@
 using Expense.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Expense.Core.Interfaces
+namespace Expense.Core.Abstractions.Persistence
 {
     public interface IApplicationDbContext
     {

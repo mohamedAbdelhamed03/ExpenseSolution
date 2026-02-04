@@ -1,5 +1,5 @@
-﻿using Expense.Core.Domain.RepositoryContracts;
-using Expense.Infrastructure.DbContext;
+﻿using Expense.Core.Abstractions.Persistence;
+using Expense.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;

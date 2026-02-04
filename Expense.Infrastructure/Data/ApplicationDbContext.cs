@@ -2,14 +2,14 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.Domain.Entities;
-using Expense.Core.Interfaces;
+using Expense.Core.Abstractions.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Expense.Infrastructure.DbContext
+namespace Expense.Infrastructure.Data
 {
 	public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>, IApplicationDbContext
 	{

@@ -1,12 +1,15 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Expense.Core.Abstractions.Authentication;
 using Expense.Core.Domain.IdentityEntities;
-using Expense.Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Expense.Core.Common.Options;
 
-namespace Expense.API.Services
+namespace Expense.Infrastructure.Authentication
 {
     public class JwtService : IJwtService
     {

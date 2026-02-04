@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Expense.Core.DTOs.Auth;
 
-namespace Expense.Core.Interfaces
+namespace Expense.Core.Abstractions.Authentication
 {
     public interface IAuthService
     {

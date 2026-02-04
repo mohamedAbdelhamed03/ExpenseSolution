@@ -1,23 +1,20 @@
 using System.Reflection;
 using System.Text;
 using FluentValidation;
-using Expense.API.Settings;
-using Expense.API.Services;
-using Expense.Core.Interfaces;
-using Expense.Core.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
-using Expense.Infrastructure.DbContext;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.Features.Common;
 using Expense.Core.Features.DependencyInjection;
 using FluentValidation.AspNetCore;
+using Expense.Infrastructure.Data;
+using Expense.Infrastructure.Authentication;
+using Expense.Core.Abstractions.Authentication;
+using Expense.Core.Common.Options;
 
 namespace Expense.API.Extensions.StartupExtensions;
 

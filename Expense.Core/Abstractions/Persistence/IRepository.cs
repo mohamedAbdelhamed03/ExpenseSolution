@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Expense.Core.Domain.RepositoryContracts
+namespace Expense.Core.Abstractions.Persistence
 {
 	public interface IRepository<T> where T : class
 	{

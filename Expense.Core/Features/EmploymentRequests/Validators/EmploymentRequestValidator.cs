@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using FluentValidation;
 
-namespace FOE.HR.Features.EmploymentRequests.Validators
+namespace Expense.Core.Features.EmploymentRequests.Validators
 {
     public class EmploymentRequestValidator
     {

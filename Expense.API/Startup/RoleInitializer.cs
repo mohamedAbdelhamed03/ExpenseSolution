@@ -1,7 +1,7 @@
 using Expense.Core.Domain.IdentityEntities;
 using Microsoft.AspNetCore.Identity;
 
-namespace Expense.API.Services
+namespace Expense.API.Startup
 {
     public class RoleInitializer
     {

@@ -1,11 +1,8 @@
 using System;
+using Expense.Core.Features.EmploymentRequests.Commands;
 using MediatR;
-// using FOE.HR.DTOs;
-// using FOE.HR.Services;
-// using FOE.HR.Helper;
-using FOE.HR.Features.EmploymentRequests.Commands;
 
-namespace FOE.HR.Features.EmploymentRequests.Handlers
+namespace Expense.Core.Features.EmploymentRequests.Handlers
 {
     // TODO: Implement handlers when services and DTOs are available
     public class CreateEmploymentRequestHandler : IRequestHandler<CreateEmploymentRequestCommand, bool>

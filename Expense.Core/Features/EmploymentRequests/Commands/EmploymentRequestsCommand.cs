@@ -4,7 +4,7 @@ using MediatR;
 // using FOE.HR.Services;
 // using FOE.HR.Helper;
 
-namespace FOE.HR.Features.EmploymentRequests.Commands
+namespace Expense.Core.Features.EmploymentRequests.Commands
 {
     // TODO: Implement commands when DTOs are available
     public class CreateEmploymentRequestCommand : IRequest<bool>

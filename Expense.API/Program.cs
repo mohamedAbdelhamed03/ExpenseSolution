@@ -1,6 +1,6 @@
 
 using Expense.API.Extensions.StartupExtensions;
-using Expense.API.Services;
+using Expense.API.Startup;
 using Expense.Core.Domain.IdentityEntities;
 using Microsoft.AspNetCore.Identity;
 

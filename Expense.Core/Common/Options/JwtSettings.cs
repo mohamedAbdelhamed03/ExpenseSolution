@@ -1,4 +1,4 @@
-﻿﻿namespace Expense.API.Settings
+﻿﻿﻿namespace Expense.Core.Common.Options
 {
     public class JwtSettings
     {

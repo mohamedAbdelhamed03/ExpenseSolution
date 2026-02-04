@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Expense.Core.Interfaces
+namespace Expense.Core.Abstractions.Authentication
 {
     public interface IJwtService
     {

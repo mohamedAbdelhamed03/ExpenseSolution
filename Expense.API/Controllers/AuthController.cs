@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Expense.Core.DTOs.Auth;
-using Expense.Core.Interfaces;
+using Expense.Core.Abstractions.Authentication;
 using Expense.Core.DTO.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

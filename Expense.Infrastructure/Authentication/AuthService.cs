@@ -3,12 +3,13 @@ using System.Text;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;
-using Expense.Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Expense.Core.Abstractions.Authentication;
+using Expense.Core.Abstractions.Persistence;
 
-namespace Expense.Core.Services
+namespace Expense.Infrastructure.Authentication
 {
     public class AuthService : IAuthService
     {
