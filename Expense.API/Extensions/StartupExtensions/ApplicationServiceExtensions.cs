@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using System.Security.Claims;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -193,7 +194,35 @@ public static class ApplicationServiceExtensions
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = jwtSettings?.Issuer,
                 ValidAudience = jwtSettings?.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.Key ?? string.Empty))
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.Key ?? string.Empty)),
+                RequireExpirationTime = true,
+                RequireSignedTokens = true,
+                ClockSkew = TimeSpan.Zero
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = async context =>
+                {
+                    var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                    var principal = context.Principal;
+                    var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var tokenVersionClaim = principal?.FindFirst("TokenVersion")?.Value;
+                    if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(tokenVersionClaim))
+                    {
+                        context.Fail("Invalid token");
+                        return;
+                    }
+                    var user = await userManager.FindByIdAsync(userId);
+                    if (user == null || !user.IsActive)
+                    {
+                        context.Fail("User invalid");
+                        return;
+                    }
+                    if (!int.TryParse(tokenVersionClaim, out var tokenVersion) || user.TokenVersion != tokenVersion)
+                    {
+                        context.Fail("Token revoked");
+                    }
+                }
             };
         });
 

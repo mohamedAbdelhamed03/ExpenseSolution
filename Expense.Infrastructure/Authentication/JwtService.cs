@@ -3,8 +3,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Expense.Core.Abstractions.Authentication;
-using Expense.Core.Domain.IdentityEntities;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Expense.Core.Common.Options;
@@ -14,12 +12,10 @@ namespace Expense.Infrastructure.Authentication
     public class JwtService : IJwtService
     {
         private readonly JwtSettings _jwtSettings;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public JwtService(IOptions<JwtSettings> jwtSettings, UserManager<ApplicationUser> userManager)
+        public JwtService(IOptions<JwtSettings> jwtSettings)
         {
             _jwtSettings = jwtSettings.Value;
-            _userManager = userManager;
         }
 
         public string GenerateAccessToken(IEnumerable<Claim> claims)
@@ -50,11 +46,14 @@ namespace Expense.Infrastructure.Authentication
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
-                ValidateAudience = false,
-                ValidateIssuer = false,
+                ValidateAudience = true,
+                ValidateIssuer = true,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
-                ValidateLifetime = false
+                ValidateLifetime = false,
+                ValidIssuer = _jwtSettings.Issuer,
+                ValidAudience = _jwtSettings.Audience,
+                RequireSignedTokens = true
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -69,10 +68,5 @@ namespace Expense.Infrastructure.Authentication
             return principal;
         }
 
-        public async Task<bool> ValidateTokenVersionAsync(string userId, int tokenVersion)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            return user?.TokenVersion == tokenVersion;
-        }
     }
 }

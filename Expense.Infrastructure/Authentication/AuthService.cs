@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.IdentityEntities;
@@ -100,11 +101,12 @@ namespace Expense.Infrastructure.Authentication
 
             var accessToken = _jwtService.GenerateAccessToken(claims);
             var refreshToken = _jwtService.GenerateRefreshToken();
+            var hashedRefreshToken = HashToken(refreshToken);
 
             var ipAddress = GetIpAddress();
             var refreshTokenEntity = new RefreshToken
             {
-                Token = refreshToken,
+                Token = hashedRefreshToken,
                 UserId = user.Id.ToString(),
                 ExpiresAt = DateTime.UtcNow.AddDays(7),
                 CreatedByIp = ipAddress
@@ -143,14 +145,14 @@ namespace Expense.Infrastructure.Authentication
                 return new RefreshTokenResponseDto { Success = false, Message = "User not found" };
             }
 
-            var isValidTokenVersion = await _jwtService.ValidateTokenVersionAsync(userId, tokenVersion);
-            if (!isValidTokenVersion)
+            if (user.TokenVersion != tokenVersion)
             {
                 return new RefreshTokenResponseDto { Success = false, Message = "Token revoked" };
             }
 
+            var hashedIncomingToken = HashToken(refreshTokenDto.RefreshToken);
             var storedRefreshToken = await _context.RefreshTokens
-                .FirstOrDefaultAsync(rt => rt.Token == refreshTokenDto.RefreshToken && rt.UserId == userId);
+                .FirstOrDefaultAsync(rt => rt.Token == hashedIncomingToken && rt.UserId == userId);
 
             if (storedRefreshToken == null || storedRefreshToken.IsRevoked || storedRefreshToken.ExpiresAt < DateTime.UtcNow)
             {
@@ -178,10 +180,11 @@ namespace Expense.Infrastructure.Authentication
 
             var newAccessToken = _jwtService.GenerateAccessToken(claims);
             var newRefreshToken = _jwtService.GenerateRefreshToken();
+            var newHashedRefreshToken = HashToken(newRefreshToken);
 
             var newRefreshTokenEntity = new RefreshToken
             {
-                Token = newRefreshToken,
+                Token = newHashedRefreshToken,
                 UserId = user.Id.ToString(),
                 ExpiresAt = DateTime.UtcNow.AddDays(7),
                 CreatedByIp = GetIpAddress(),
@@ -235,8 +238,9 @@ namespace Expense.Infrastructure.Authentication
 
         public async Task<bool> RevokeRefreshTokenAsync(string userId, string refreshToken)
         {
+            var hashedIncomingToken = HashToken(refreshToken);
             var storedToken = await _context.RefreshTokens
-                .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.UserId == userId);
+                .FirstOrDefaultAsync(rt => rt.Token == hashedIncomingToken && rt.UserId == userId);
 
             if (storedToken == null || storedToken.IsRevoked)
             {
@@ -320,6 +324,14 @@ namespace Expense.Infrastructure.Authentication
         private string? GetIpAddress()
         {
             return _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+        }
+
+        private static string HashToken(string token)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(token);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
     }
 }

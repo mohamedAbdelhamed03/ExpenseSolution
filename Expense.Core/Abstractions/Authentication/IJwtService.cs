@@ -7,6 +7,5 @@ namespace Expense.Core.Abstractions.Authentication
         string GenerateAccessToken(IEnumerable<Claim> claims);
         string GenerateRefreshToken();
         ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
-        Task<bool> ValidateTokenVersionAsync(string userId, int tokenVersion);
     }
 }
