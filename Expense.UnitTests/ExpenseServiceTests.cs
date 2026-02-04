@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Expense.Core.Domain.Entities;
 using Expense.Core.DTOs.Expenses;
-using Expense.Core.Exceptions;
+using Expense.Core.Common.Exceptions;
 using Expense.Infrastructure.Data;
 using Expense.Infrastructure.Expenses;
 using Microsoft.EntityFrameworkCore;

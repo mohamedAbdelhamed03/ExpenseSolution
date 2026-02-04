@@ -6,7 +6,7 @@ using Expense.Core.Abstractions.Expenses;
 using Expense.Core.Abstractions.Persistence;
 using Expense.Core.Domain.Entities;
 using Expense.Core.DTOs.Expenses;
-using Expense.Core.Exceptions;
+using Expense.Core.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using ExpenseEntity = Expense.Core.Domain.Entities.Expense;
 

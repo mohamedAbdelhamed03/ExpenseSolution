@@ -4,7 +4,7 @@ using Expense.Core.Abstractions.Persistence;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;
-using Expense.Core.Exceptions;
+using Expense.Core.Common.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;

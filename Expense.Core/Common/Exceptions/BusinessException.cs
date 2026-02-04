@@ -1,6 +1,6 @@
 using System;
 
-namespace Expense.Core.Exceptions
+namespace Expense.Core.Common.Exceptions
 {
     public class BusinessException : Exception
     {

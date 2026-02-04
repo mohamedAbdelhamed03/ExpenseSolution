@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Expense.Core.Abstractions.Balances;
 using Expense.Core.Abstractions.Persistence;
 using Expense.Core.DTOs.Balances;
-using Expense.Core.Exceptions;
+using Expense.Core.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Expense.Infrastructure.Balances

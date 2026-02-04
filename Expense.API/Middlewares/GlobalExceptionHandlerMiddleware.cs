@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Text.Json;
 using FluentValidation;
 using Expense.Core.DTOs.Shared;
-using Expense.Core.Exceptions;
+using Expense.Core.Common.Exceptions;
 
-namespace Expense.API.Middleware
+namespace Expense.API.Middlewares
 {
     public class GlobalExceptionHandlerMiddleware
     {

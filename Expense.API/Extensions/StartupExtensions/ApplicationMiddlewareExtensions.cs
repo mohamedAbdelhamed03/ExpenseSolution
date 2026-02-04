@@ -1,5 +1,5 @@
 
-using Expense.API.Middleware;
+using Expense.API.Middlewares;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
