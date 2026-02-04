@@ -3,11 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Abstractions.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Expense.Infrastructure.Data
 {
