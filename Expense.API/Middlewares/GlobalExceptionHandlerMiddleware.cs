@@ -4,7 +4,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using FluentValidation;
-using Expense.Core.DTO.Shared;
+using Expense.Core.DTOs.Shared;
+using Expense.Core.Exceptions;
 
 namespace Expense.API.Middleware
 {
@@ -91,6 +92,21 @@ namespace Expense.API.Middleware
                     };
                     context.Response.StatusCode = statusCode;
                     _logger.LogWarning(exception, "ValidationException: {Message}, TraceId: {TraceId}", validationEx.Message, context.TraceIdentifier);
+                    break;
+
+                case BusinessException businessEx:
+                    statusCode = (int)HttpStatusCode.BadRequest;
+                    response = new APIResponse<object>
+                    {
+                        Success = false,
+                        Data = null,
+                        StatusCode = statusCode,
+                        Message = businessEx.Message, // Always show message for business exceptions
+                        Errors = new List<string> { businessEx.Message },
+                        TraceId = context.TraceIdentifier
+                    };
+                    context.Response.StatusCode = statusCode;
+                    _logger.LogWarning(exception, "BusinessException: {Message}, TraceId: {TraceId}", businessEx.Message, context.TraceIdentifier);
                     break;
 
                 case ArgumentNullException argNullEx:

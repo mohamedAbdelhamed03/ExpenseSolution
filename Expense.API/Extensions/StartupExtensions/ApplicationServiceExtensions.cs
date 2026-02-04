@@ -16,6 +16,14 @@ using Expense.Infrastructure.Data;
 using Expense.Infrastructure.Authentication;
 using Expense.Core.Abstractions.Authentication;
 using Expense.Core.Common.Options;
+using Expense.Core.Abstractions.Groups;
+using Expense.Core.Abstractions.Expenses;
+using Expense.Core.Abstractions.Balances;
+using Expense.Infrastructure.Groups;
+using Expense.Infrastructure.Expenses;
+using Expense.Infrastructure.Balances;
+using Expense.Infrastructure.Authentication.Social;
+using Expense.Core.Abstractions.Persistence;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -33,7 +41,7 @@ public static class ApplicationServiceExtensions
         services.AddControllers();
         services.AddFluentValidationAutoValidation();
         services.AddFluentValidationClientsideAdapters();
-        services.AddAuthValidation();
+        services.AddCoreValidation();
 
         // Assuming Program is in the entry assembly. 
         // We can use Assembly.GetExecutingAssembly() or pass the type if needed, 
@@ -146,6 +154,8 @@ public static class ApplicationServiceExtensions
             }
         });
 
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+
         // Configure Identity
         services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
         {
@@ -172,6 +182,15 @@ public static class ApplicationServiceExtensions
         // Register services
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IGroupService, GroupService>();
+        services.AddScoped<IExpenseService, ExpenseService>();
+        services.AddScoped<IBalanceService, BalanceService>();
+        
+        // Social Auth
+        services.AddHttpClient();
+        services.AddScoped<ISocialAuthService, SocialAuthService>();
+        services.AddScoped<ISocialTokenValidator, GoogleTokenValidator>();
+        services.AddScoped<ISocialTokenValidator, FacebookTokenValidator>();
 
         services.AddHttpContextAccessor();
 

@@ -1,0 +1,11 @@
+using Expense.Core.Domain.IdentityEntities;
+
+namespace Expense.Core.DTOs.Auth
+{
+    public class SocialLoginDto
+    {
+        public string Token { get; set; } = string.Empty;
+        
+        public AuthProvider Provider { get; set; }
+    }
+}

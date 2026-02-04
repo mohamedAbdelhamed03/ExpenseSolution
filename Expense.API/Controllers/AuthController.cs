@@ -1,7 +1,8 @@
 using System.Security.Claims;
 using Expense.Core.DTOs.Auth;
 using Expense.Core.Abstractions.Authentication;
-using Expense.Core.DTO.Shared;
+using Expense.Core.DTOs.Shared;
+using Expense.Core.Domain.IdentityEntities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -13,10 +14,72 @@ namespace Expense.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ISocialAuthService _socialAuthService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ISocialAuthService socialAuthService)
         {
             _authService = authService;
+            _socialAuthService = socialAuthService;
+        }
+
+        [HttpPost("google")]
+        [AllowAnonymous]
+        [SwaggerOperation(Summary = "Login with Google")]
+        [SwaggerResponse(200, "Login successful", typeof(APIResponse<LoginResponseDto>))]
+        [SwaggerResponse(400, "Login failed")]
+        public async Task<ActionResult<APIResponse<LoginResponseDto>>> GoogleLogin([FromBody] SocialLoginDto loginDto)
+        {
+            if (loginDto.Provider != AuthProvider.Google)
+                return BadRequest(new APIResponse<LoginResponseDto> { Success = false, Message = "Invalid provider" });
+
+            var result = await _socialAuthService.SocialLoginAsync(loginDto);
+            
+            if (result.Success)
+            {
+                return Ok(new APIResponse<LoginResponseDto>
+                {
+                    Success = true,
+                    Message = result.Message,
+                    Data = result
+                });
+            }
+
+            return BadRequest(new APIResponse<LoginResponseDto>
+            {
+                Success = false,
+                Message = result.Message,
+                Data = result
+            });
+        }
+
+        [HttpPost("facebook")]
+        [AllowAnonymous]
+        [SwaggerOperation(Summary = "Login with Facebook")]
+        [SwaggerResponse(200, "Login successful", typeof(APIResponse<LoginResponseDto>))]
+        [SwaggerResponse(400, "Login failed")]
+        public async Task<ActionResult<APIResponse<LoginResponseDto>>> FacebookLogin([FromBody] SocialLoginDto loginDto)
+        {
+            if (loginDto.Provider != AuthProvider.Facebook)
+                return BadRequest(new APIResponse<LoginResponseDto> { Success = false, Message = "Invalid provider" });
+
+            var result = await _socialAuthService.SocialLoginAsync(loginDto);
+            
+            if (result.Success)
+            {
+                return Ok(new APIResponse<LoginResponseDto>
+                {
+                    Success = true,
+                    Message = result.Message,
+                    Data = result
+                });
+            }
+
+            return BadRequest(new APIResponse<LoginResponseDto>
+            {
+                Success = false,
+                Message = result.Message,
+                Data = result
+            });
         }
 
         [HttpPost("register")]

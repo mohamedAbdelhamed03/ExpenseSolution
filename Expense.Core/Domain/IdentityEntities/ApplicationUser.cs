@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace Expense.Core.Domain.IdentityEntities
 {
@@ -12,5 +12,10 @@ namespace Expense.Core.Domain.IdentityEntities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public int TokenVersion { get; set; } = 1;
+
+        // Social Auth Fields
+        public string? GoogleId { get; set; }
+        public string? FacebookId { get; set; }
+        public AuthProvider Provider { get; set; } = AuthProvider.Local;
     }
 }

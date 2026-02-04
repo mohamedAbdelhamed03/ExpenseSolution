@@ -1,4 +1,5 @@
 using Expense.Core.DTOs.Auth;
+using Expense.Core.Features.Common;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
@@ -80,6 +81,18 @@ namespace Expense.Core.Features.Auth.Validators
 
             RuleFor(x => x.ConfirmPassword)
                 .Equal(x => x.NewPassword).WithMessage(_localizer["PasswordsDoNotMatch"]);
+        }
+    }
+
+    public class SocialLoginDtoValidator : LocalizedAbstractValidator<SocialLoginDto>
+    {
+        public SocialLoginDtoValidator(IStringLocalizer<AuthDtoValidators> localizer) : base(localizer)
+        {
+            RuleFor(x => x.Token)
+                .NotEmpty().WithMessage(_localizer["TokenRequired"]);
+
+            RuleFor(x => x.Provider)
+                .IsInEnum().WithMessage(_localizer["ProviderInvalid"]);
         }
     }
 
