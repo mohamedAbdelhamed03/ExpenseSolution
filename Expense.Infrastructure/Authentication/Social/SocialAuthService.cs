@@ -145,7 +145,7 @@ namespace Expense.Infrastructure.Authentication.Social
                 CreatedByIp = ipAddress
             };
 
-            await _unitOfWork.Repository<RefreshToken>().Add(refreshTokenEntity);
+            _unitOfWork.Repository<RefreshToken>().Add(refreshTokenEntity);
             await _unitOfWork.SaveAsync();
 
             return new LoginResponseDto

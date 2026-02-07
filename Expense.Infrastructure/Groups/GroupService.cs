@@ -17,7 +17,7 @@ namespace Expense.Infrastructure.Groups
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<GroupDto> CreateGroupAsync(string creatorUserId, CreateGroupDto dto)
+        public async Task<GroupDto> CreateGroupAsync(string creatorUserId, CreateGroupDto dto, CancellationToken cancellationToken)
         {
             var inviteCode = Guid.NewGuid().ToString("N")[..8];
             var group = new Group
@@ -27,7 +27,7 @@ namespace Expense.Infrastructure.Groups
                 InviteCode = inviteCode
             };
             
-            await _unitOfWork.Repository<Group>().Add(group);
+            _unitOfWork.Groups.Add(group);
             
             var member = new GroupMember
             {
@@ -36,8 +36,8 @@ namespace Expense.Infrastructure.Groups
                 Role = GroupRole.Admin
             };
             
-            await _unitOfWork.Repository<GroupMember>().Add(member);
-            await _unitOfWork.SaveAsync();
+            _unitOfWork.Groups.AddMember(member);
+            await _unitOfWork.SaveAsync(cancellationToken);
 
             // Map directly from entity since we have all data in memory
             return new GroupDto
@@ -56,15 +56,13 @@ namespace Expense.Infrastructure.Groups
             };
         }
 
-        public async Task<GroupDto?> GetGroupAsync(Guid groupId, string requesterUserId)
+        public async Task<GroupDto?> GetGroupAsync(Guid groupId, string requesterUserId, CancellationToken cancellationToken)
         {
-            var member = await _unitOfWork.Repository<GroupMember>()
-                .Get(m => m.GroupId == groupId && m.UserId == requesterUserId);
+            var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, requesterUserId, cancellationToken);
                 
-            if (member == null) return null;
+            if (!isMember) return null;
 
-            var group = await _unitOfWork.Repository<Group>()
-                .Get(g => g.Id == groupId, includes: new[] { "Members" });
+            var group = await _unitOfWork.Groups.GetWithMembersAsync(groupId, cancellationToken);
 
             if (group == null) return null;
 
@@ -81,17 +79,15 @@ namespace Expense.Infrastructure.Groups
             };
         }
 
-        public async Task<bool> JoinGroupAsync(string userId, string inviteCode)
+        public async Task<bool> JoinGroupAsync(string userId, string inviteCode, CancellationToken cancellationToken)
         {
-            var group = await _unitOfWork.Repository<Group>()
-                .Get(g => g.InviteCode == inviteCode);
+            var group = await _unitOfWork.Groups.GetByInviteCodeAsync(inviteCode, cancellationToken);
                 
             if (group == null) return false;
 
-            var existingMember = await _unitOfWork.Repository<GroupMember>()
-                .Get(m => m.GroupId == group.Id && m.UserId == userId);
+            var existingMember = await _unitOfWork.Groups.IsMemberAsync(group.Id, userId, cancellationToken);
                 
-            if (existingMember != null) return true;
+            if (existingMember) return true;
 
             var member = new GroupMember
             {
@@ -100,8 +96,8 @@ namespace Expense.Infrastructure.Groups
                 Role = GroupRole.Member
             };
             
-            await _unitOfWork.Repository<GroupMember>().Add(member);
-            await _unitOfWork.SaveAsync();
+            _unitOfWork.Groups.AddMember(member);
+            await _unitOfWork.SaveAsync(cancellationToken);
             
             return true;
         }

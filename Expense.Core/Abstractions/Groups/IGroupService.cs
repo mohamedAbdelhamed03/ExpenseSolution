@@ -6,8 +6,8 @@ namespace Expense.Core.Abstractions.Groups
 {
     public interface IGroupService
     {
-        Task<GroupDto> CreateGroupAsync(string creatorUserId, CreateGroupDto dto);
-        Task<GroupDto?> GetGroupAsync(Guid groupId, string requesterUserId);
-        Task<bool> JoinGroupAsync(string userId, string inviteCode);
+        Task<GroupDto> CreateGroupAsync(string creatorUserId, CreateGroupDto dto, CancellationToken cancellationToken);
+        Task<GroupDto?> GetGroupAsync(Guid groupId, string requesterUserId, CancellationToken cancellationToken);
+        Task<bool> JoinGroupAsync(string userId, string inviteCode, CancellationToken cancellationToken);
     }
 }

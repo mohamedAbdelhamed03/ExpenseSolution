@@ -20,21 +20,17 @@ namespace Expense.Infrastructure.Balances
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<BalanceDto>> GetGroupBalancesAsync(Guid groupId, string requesterUserId)
+        public async Task<IEnumerable<BalanceDto>> GetGroupBalancesAsync(Guid groupId, string requesterUserId, CancellationToken cancellationToken)
         {
-            var isMember = await _unitOfWork.Repository<GroupMember>().Exists(m => m.GroupId == groupId && m.UserId == requesterUserId);
+            var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, requesterUserId, cancellationToken);
             if (!isMember) throw new BusinessException("Not a group member");
             
-            var members = (await _unitOfWork.Repository<GroupMember>()
-                .GetAll(m => m.GroupId == groupId))
+            var members = (await _unitOfWork.Balances.GetMembersAsync(groupId, cancellationToken))
                 .Select(m => m.UserId)
                 .ToList();
 
             // Fetch all expenses for the group with splits
-            // Note: In a large system, this should be optimized to use a specialized repository method
-            // or a direct query to avoid loading all expenses into memory.
-            var expenses = await _unitOfWork.Repository<ExpenseEntity>()
-                .GetAll(e => e.GroupId == groupId, includes: new[] { "Splits" });
+            var expenses = await _unitOfWork.Balances.GetExpensesWithSplitsAsync(groupId, cancellationToken);
             
             var totalPaid = expenses
                 .GroupBy(e => e.PaidByUserId)

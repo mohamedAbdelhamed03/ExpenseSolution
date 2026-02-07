@@ -49,11 +49,11 @@ namespace Expense.Infrastructure.Expenses
                 ExpenseDate = dto.ExpenseDate
             };
             
-            await _unitOfWork.Repository<ExpenseEntity>().Add(expense);
+            _unitOfWork.Repository<ExpenseEntity>().Add(expense);
             
             foreach (var s in dto.Splits)
             {
-                await _unitOfWork.Repository<ExpenseSplit>().Add(new ExpenseSplit
+                _unitOfWork.Repository<ExpenseSplit>().Add(new ExpenseSplit
                 {
                     Expense = expense,
                     UserId = s.UserId,
@@ -81,8 +81,7 @@ namespace Expense.Infrastructure.Expenses
             if (!isMember) throw new BusinessException("Not a group member");
             
             // Fetch all expenses with splits for the group
-            var expenses = await _unitOfWork.Repository<ExpenseEntity>()
-                .GetAll(e => e.GroupId == groupId, includes: new[] { "Splits" });
+            var expenses = await _unitOfWork.Expenses.GetExpensesByGroupAsync(groupId);
             
             // Perform ordering and projection in memory
             return expenses

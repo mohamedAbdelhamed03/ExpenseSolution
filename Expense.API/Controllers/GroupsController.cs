@@ -25,7 +25,7 @@ namespace Expense.API.Controllers
         public async Task<ActionResult<APIResponse<GroupDto>>> CreateGroup([FromBody] CreateGroupDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var result = await _groupService.CreateGroupAsync(userId, dto);
+            var result = await _groupService.CreateGroupAsync(userId, dto, HttpContext.RequestAborted);
             return Ok(APIResponse<GroupDto>.SuccessResponse(result, "Group created successfully"));
         }
 
@@ -33,7 +33,7 @@ namespace Expense.API.Controllers
         public async Task<ActionResult<APIResponse<GroupDto>>> GetGroup(Guid groupId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var result = await _groupService.GetGroupAsync(groupId, userId);
+            var result = await _groupService.GetGroupAsync(groupId, userId, HttpContext.RequestAborted);
             if (result == null) 
                 return Forbid(); // Or NotFound depending on business logic, keeping Forbid as per original
             
@@ -44,7 +44,7 @@ namespace Expense.API.Controllers
         public async Task<ActionResult<APIResponse<object>>> JoinGroup(string inviteCode)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var ok = await _groupService.JoinGroupAsync(userId, inviteCode);
+            var ok = await _groupService.JoinGroupAsync(userId, inviteCode, HttpContext.RequestAborted);
             if (!ok) 
                 return NotFound(APIResponse<object>.ErrorResponse("Invalid invite code or group not found", statusCode: 404));
             

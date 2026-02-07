@@ -24,7 +24,7 @@ namespace Expense.API.Controllers
         public async Task<ActionResult<APIResponse<IEnumerable<BalanceDto>>>> Get(Guid groupId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var result = await _balanceService.GetGroupBalancesAsync(groupId, userId);
+            var result = await _balanceService.GetGroupBalancesAsync(groupId, userId, HttpContext.RequestAborted);
             return Ok(APIResponse<IEnumerable<BalanceDto>>.SuccessResponse(result));
         }
     }

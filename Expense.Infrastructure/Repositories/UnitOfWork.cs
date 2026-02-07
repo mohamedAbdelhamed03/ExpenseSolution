@@ -1,4 +1,4 @@
-﻿using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Abstractions.Persistence;
 using Expense.Infrastructure.Data;
 using System;
 using System.Collections;
@@ -13,11 +13,17 @@ namespace Expense.Infrastructure.Repositories
 	{
 		private readonly ApplicationDbContext _db;
 		private Hashtable _repositories;
+        public IExpenseRepository Expenses { get; private set; }
+        public IGroupRepository Groups { get; private set; }
+        public IBalanceRepository Balances { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db)
 		{
 			_db = db;
 			_repositories = new Hashtable();
+            Expenses = new ExpenseRepository(_db);
+            Groups = new GroupRepository(_db);
+            Balances = new BalanceRepository(_db);
 		}
 
 		public IRepository<T> Repository<T>() where T : class

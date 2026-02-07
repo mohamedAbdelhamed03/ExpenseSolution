@@ -111,7 +111,7 @@ namespace Expense.Infrastructure.Authentication
                 CreatedByIp = ipAddress
             };
 
-            await _unitOfWork.Repository<RefreshToken>().Add(refreshTokenEntity);
+            _unitOfWork.Repository<RefreshToken>().Add(refreshTokenEntity);
             await _unitOfWork.SaveAsync();
 
             return new LoginResponseDto
@@ -190,7 +190,7 @@ namespace Expense.Infrastructure.Authentication
                 ReplacedByToken = storedRefreshToken.Token
             };
 
-            await _unitOfWork.Repository<RefreshToken>().Add(newRefreshTokenEntity);
+            _unitOfWork.Repository<RefreshToken>().Add(newRefreshTokenEntity);
             await _unitOfWork.SaveAsync();
 
             return new RefreshTokenResponseDto

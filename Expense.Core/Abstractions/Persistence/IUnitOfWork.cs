@@ -10,6 +10,9 @@ namespace Expense.Core.Abstractions.Persistence
 	public interface IUnitOfWork
 	{
 		IRepository<T> Repository<T>() where T : class;
+        IExpenseRepository Expenses { get; }
+        IGroupRepository Groups { get; }
+        IBalanceRepository Balances { get; }
 		Task<int> SaveAsync(CancellationToken cancellationToken = default);
 	}
 }

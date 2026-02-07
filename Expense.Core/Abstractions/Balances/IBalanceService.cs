@@ -7,6 +7,6 @@ namespace Expense.Core.Abstractions.Balances
 {
     public interface IBalanceService
     {
-        Task<IEnumerable<BalanceDto>> GetGroupBalancesAsync(Guid groupId, string requesterUserId);
+        Task<IEnumerable<BalanceDto>> GetGroupBalancesAsync(Guid groupId, string requesterUserId, CancellationToken cancellationToken);
     }
 }

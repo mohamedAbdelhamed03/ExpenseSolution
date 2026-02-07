@@ -10,12 +10,12 @@ namespace Expense.Core.Abstractions.Persistence
 	public interface IRepository<T> where T : class
 	{
 
-		Task<T> Add(T entity);
-		Task<T> Get(Expression<Func<T, bool>>? filter = null, string[]? includes = null, bool noTracking = false);
-		Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>>? filter = null, string[]? includes = null);
-		Task<T> Update(T entity);
-		Task<bool> Remove(T entity);
-		Task<bool> RemoveRange(IEnumerable<T> entity);
+		void Add(T entity);
+		Task<T?> Get(Expression<Func<T, bool>>? filter = null, bool noTracking = false, params Expression<Func<T, object>>[] includes);
+		Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>>? filter = null, params Expression<Func<T, object>>[] includes);
+		void Update(T entity);
+		void Remove(T entity);
+		void RemoveRange(IEnumerable<T> entity);
 		Task<bool> Exists(Expression<Func<T, bool>> filter);
 	}
 }

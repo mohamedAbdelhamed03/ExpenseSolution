@@ -1,18 +1,15 @@
-﻿using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Abstractions.Persistence;
 using Expense.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Expense.Infrastructure.Repositories
-
 {
 	public class Repository<T> : IRepository<T> where T : class
-
 	{
 		private readonly ApplicationDbContext _db;
 		internal DbSet<T> dbSet;
@@ -21,15 +18,16 @@ namespace Expense.Infrastructure.Repositories
 			_db = db;
 			this.dbSet = _db.Set<T>();
 		}
-		public async Task<T> Add(T entity)
+
+		public void Add(T entity)
 		{
-			await dbSet.AddAsync(entity);
-			return entity;
+			dbSet.Add(entity);
 		}
 
-		public async Task<T> Get(Expression<Func<T, bool>>? filter, string[]? includes, bool noTracking)
+		public async Task<T?> Get(Expression<Func<T, bool>>? filter = null, bool noTracking = false, params Expression<Func<T, object>>[] includes)
 		{
 			IQueryable<T> query = dbSet;
+			
 			if (includes != null)
 			{
 				foreach (var include in includes)
@@ -37,21 +35,24 @@ namespace Expense.Infrastructure.Repositories
 					query = query.Include(include);
 				}
 			}
+			
 			if (filter != null)
 			{
 				query = query.Where(filter);
 			}
+			
 			if (noTracking)
 			{
 				query = query.AsNoTracking();
 			}
-			T? result = await query.FirstOrDefaultAsync();
-			return result!;
+			
+			return await query.FirstOrDefaultAsync();
 		}
 
-		public async Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>>? filter, string[]? includes)
+		public async Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>>? filter = null, params Expression<Func<T, object>>[] includes)
 		{
 			IQueryable<T> query = dbSet;
+			
 			if (includes != null)
 			{
 				foreach (var include in includes)
@@ -59,6 +60,7 @@ namespace Expense.Infrastructure.Repositories
 					query = query.Include(include);
 				}
 			}
+			
 			if (filter != null)
 			{
 				query = query.Where(filter);
@@ -67,28 +69,24 @@ namespace Expense.Infrastructure.Repositories
 			return await query.ToListAsync();
 		}
 
-		public async Task<bool> Remove(T entity)
+		public void Remove(T entity)
 		{
 			dbSet.Remove(entity);
-			return true;
 		}
 
-		public async Task<bool> RemoveRange(IEnumerable<T> entity)
+		public void RemoveRange(IEnumerable<T> entity)
 		{
 			dbSet.RemoveRange(entity);
-			return true;
 		}
-		public async Task<T> Update(T entity)
+
+		public void Update(T entity)
 		{
 			dbSet.Update(entity);
-			return entity;
 		}
 
 		public async Task<bool> Exists(Expression<Func<T, bool>> filter)
 		{
 			return await dbSet.AnyAsync(filter);
 		}
-
-
 	}
 }
