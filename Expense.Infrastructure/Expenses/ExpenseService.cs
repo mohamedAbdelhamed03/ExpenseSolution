@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using Expense.Core.Abstractions.ActivityLogs;
 using Expense.Core.Abstractions.Expenses;
 using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Abstractions.Notifications;
 using Expense.Core.Common.Exceptions;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.Enums;
 using Expense.Core.DTOs.Expenses;
+using Expense.Core.DTOs.Notifications;
 using FluentValidation;
 using ExpenseEntity = Expense.Core.Domain.Entities.Expense;
 
@@ -19,6 +21,7 @@ namespace Expense.Infrastructure.Expenses
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IActivityLogService _activityLogService;
+        private readonly IRealtimeNotifier _notifier;
         private readonly IValidator<CreateExpenseDto> _createValidator;
         private readonly IValidator<UpdateExpenseDto> _updateValidator;
         private readonly IValidator<UpdateExpensePatchDto> _patchValidator;
@@ -26,12 +29,14 @@ namespace Expense.Infrastructure.Expenses
         public ExpenseService(
             IUnitOfWork unitOfWork, 
             IActivityLogService activityLogService,
+            IRealtimeNotifier notifier,
             IValidator<CreateExpenseDto> createValidator,
             IValidator<UpdateExpenseDto> updateValidator,
             IValidator<UpdateExpensePatchDto> patchValidator)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
+            _notifier = notifier;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
             _patchValidator = patchValidator;
@@ -143,6 +148,8 @@ namespace Expense.Infrastructure.Expenses
             await _activityLogService.LogActivityAsync(groupId, paidByUserId, ActivityType.Created, EntityType.Expense, expense.Id.ToString(), $"Amount: {dto.Amount}", cancellationToken);
             
             await _unitOfWork.SaveAsync(cancellationToken);
+            
+            await NotifyGroupMembersAsync(groupId, paidByUserId, "Expense_Created", new { ExpenseId = expense.Id, Amount = expense.Amount, Description = expense.Description }, cancellationToken);
             
             return new ExpenseDto
             {
@@ -329,6 +336,8 @@ namespace Expense.Infrastructure.Expenses
             await _activityLogService.LogActivityAsync(expense.GroupId, userId, ActivityType.Updated, EntityType.Expense, expense.Id.ToString(), $"Amount: {dto.Amount}", cancellationToken);
             await _unitOfWork.SaveAsync(cancellationToken);
 
+            await NotifyGroupMembersAsync(groupId, userId, "Expense_Updated", new { ExpenseId = expense.Id, Amount = expense.Amount, Description = expense.Description }, cancellationToken);
+
             return new ExpenseDto
             {
                 Id = expense.Id,
@@ -401,6 +410,8 @@ namespace Expense.Infrastructure.Expenses
                 await _activityLogService.LogActivityAsync(groupId, userId, ActivityType.Updated, EntityType.Expense, expense.Id.ToString(), $"Partial update: {string.Join(", ", changes)}", cancellationToken);
                 
                 await _unitOfWork.SaveAsync(cancellationToken);
+
+                await NotifyGroupMembersAsync(groupId, userId, "Expense_Updated", new { ExpenseId = expense.Id, Changes = changes }, cancellationToken);
             }
 
             return new ExpenseDto
@@ -446,7 +457,36 @@ namespace Expense.Infrastructure.Expenses
             await _activityLogService.LogActivityAsync(groupId, userId, ActivityType.Deleted, EntityType.Expense, expense.Id.ToString(), null, cancellationToken);
             
             await _unitOfWork.SaveAsync(cancellationToken);
+            
+            await NotifyGroupMembersAsync(groupId, userId, "Expense_Deleted", new { ExpenseId = expenseId }, cancellationToken);
+
             return true;
+        }
+
+        private async Task NotifyGroupMembersAsync(Guid groupId, string actorUserId, string type, object payload, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var members = await _unitOfWork.Repository<GroupMember>().GetAll(m => m.GroupId == groupId);
+                var userIds = members.Select(m => m.UserId).Where(u => u != actorUserId).Distinct().ToList();
+
+                if (userIds.Any())
+                {
+                    var message = new NotificationMessage
+                    {
+                        Type = type,
+                        GroupId = groupId,
+                        ActorUserId = actorUserId,
+                        Payload = payload,
+                        Timestamp = DateTime.UtcNow
+                    };
+                    await _notifier.NotifyUsersAsync(userIds, message, cancellationToken);
+                }
+            }
+            catch
+            {
+                // Fire and forget, don't block business logic
+            }
         }
     }
 }

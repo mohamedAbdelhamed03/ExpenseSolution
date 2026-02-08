@@ -21,6 +21,7 @@ namespace Expense.Infrastructure.Data
 		public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
 		public DbSet<ActivityLog> ActivityLogs { get; set; }
 		public DbSet<Settlement> Settlements { get; set; }
+		public DbSet<Notification> Notifications { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -37,6 +38,16 @@ namespace Expense.Infrastructure.Data
 				
 				entity.HasIndex(e => e.Token).IsUnique();
 				entity.HasIndex(e => e.UserId);
+			});
+
+			modelBuilder.Entity<Notification>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.UserId).IsRequired();
+				entity.Property(e => e.Message).IsRequired();
+				entity.Property(e => e.CreatedAt).IsRequired();
+				entity.HasIndex(e => e.UserId);
+				entity.HasIndex(e => new { e.UserId, e.IsRead });
 			});
 
             modelBuilder.Entity<ApplicationUser>(entity =>

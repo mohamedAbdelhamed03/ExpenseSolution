@@ -11,7 +11,7 @@ namespace Expense.Infrastructure.Repositories
 {
 	public class Repository<T> : IRepository<T> where T : class
 	{
-		private readonly ApplicationDbContext _db;
+		protected readonly ApplicationDbContext _db;
 		internal DbSet<T> dbSet;
 		public Repository(ApplicationDbContext db)
 		{

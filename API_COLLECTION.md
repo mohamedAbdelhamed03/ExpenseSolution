@@ -253,3 +253,45 @@
 - Description: List group activity logs (paged)
 - Auth required: Yes
 - Query params: `page` (default 1), `pageSize` (default 20)
+
+## Notifications
+
+### GET /api/notifications/unread
+- Description: Get unread notifications for the current user
+- Auth required: Yes
+- Success response:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "type": "Expense_Created",
+      "payload": "json_string",
+      "isRead": false,
+      "createdAt": "2026-02-08T12:00:00Z"
+    }
+  ]
+}
+```
+
+### POST /api/notifications/mark-read
+- Description: Mark multiple notifications as read
+- Auth required: Yes
+- Request body:
+```json
+{
+  "notificationIds": ["uuid1", "uuid2"]
+}
+```
+
+### POST /api/notifications/{id}/read
+- Description: Mark a single notification as read
+- Auth required: Yes
+
+## Realtime
+### WebSocket /ws
+- Description: Realtime notification stream
+- Query params: `token=<access_token>`
+- Protocol: JSON messages
+

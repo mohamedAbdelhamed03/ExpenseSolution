@@ -18,6 +18,7 @@ namespace Expense.Infrastructure.Repositories
         public IBalanceRepository Balances { get; private set; }
         public IExpenseCategoryRepository Categories { get; private set; }
         public IActivityLogRepository ActivityLogs { get; private set; }
+        public INotificationRepository Notifications { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db)
 		{
@@ -28,6 +29,7 @@ namespace Expense.Infrastructure.Repositories
             Balances = new BalanceRepository(_db);
             Categories = new ExpenseCategoryRepository(_db);
             ActivityLogs = new ActivityLogRepository(_db);
+            Notifications = new NotificationRepository(_db);
 		}
 
 		public IRepository<T> Repository<T>() where T : class

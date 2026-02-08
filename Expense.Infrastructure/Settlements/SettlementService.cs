@@ -5,10 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Expense.Core.Abstractions.Persistence;
 using Expense.Core.Abstractions.Settlements;
+using Expense.Core.Abstractions.Notifications;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Common.Exceptions;
 using Expense.Core.DTOs.ActivityLogs;
 using Expense.Core.DTOs.Settlements;
+using Expense.Core.DTOs.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Expense.Core.Abstractions.ActivityLogs;
 using Expense.Core.Abstractions.Balances;
@@ -22,17 +24,20 @@ namespace Expense.Infrastructure.Settlements
         private readonly IUnitOfWork _unitOfWork;
         private readonly IActivityLogService _activityLogService;
         private readonly IBalanceService _balanceService;
+        private readonly IRealtimeNotifier _notifier;
         private readonly IValidator<CreateSettlementDto> _createValidator;
 
         public SettlementService(
             IUnitOfWork unitOfWork, 
             IActivityLogService activityLogService,
             IBalanceService balanceService,
+            IRealtimeNotifier notifier,
             IValidator<CreateSettlementDto> createValidator)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
             _balanceService = balanceService;
+            _notifier = notifier;
             _createValidator = createValidator;
         }
 
@@ -103,6 +108,8 @@ namespace Expense.Infrastructure.Settlements
             await _activityLogService.LogActivityAsync(groupId, payerUserId, ActivityType.Created, EntityType.Settlement, settlement.Id.ToString(), $"Amount: {settlement.Amount} {settlement.Currency}", cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+
+            await NotifyGroupMembersAsync(groupId, payerUserId, "Settlement_Created", new { SettlementId = settlement.Id, Amount = settlement.Amount, PayeeId = settlement.PayeeUserId }, cancellationToken);
 
             return MapToDto(settlement);
         }
@@ -176,6 +183,34 @@ namespace Expense.Infrastructure.Settlements
             await _activityLogService.LogActivityAsync(groupId, userId, ActivityType.Deleted, EntityType.Settlement, settlementId.ToString(), $"Amount: {settlement.Amount} {settlement.Currency}", cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+
+            await NotifyGroupMembersAsync(groupId, userId, "Settlement_Deleted", new { SettlementId = settlementId }, cancellationToken);
+        }
+
+        private async Task NotifyGroupMembersAsync(Guid groupId, string actorUserId, string type, object payload, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var members = await _unitOfWork.Repository<GroupMember>().GetAll(m => m.GroupId == groupId);
+                var userIds = members.Select(m => m.UserId).Where(u => u != actorUserId).Distinct().ToList();
+
+                if (userIds.Any())
+                {
+                    var message = new NotificationMessage
+                    {
+                        Type = type,
+                        GroupId = groupId,
+                        ActorUserId = actorUserId,
+                        Payload = payload,
+                        Timestamp = DateTime.UtcNow
+                    };
+                    await _notifier.NotifyUsersAsync(userIds, message, cancellationToken);
+                }
+            }
+            catch
+            {
+                // Fire and forget
+            }
         }
 
         private static SettlementDto MapToDto(Settlement settlement)

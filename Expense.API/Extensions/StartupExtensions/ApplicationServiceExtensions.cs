@@ -33,6 +33,8 @@ using Expense.Core.Abstractions.Settlements;
 using Expense.Infrastructure.Settlements;
 using Expense.Core.Abstractions.Debts;
 using Expense.Infrastructure.Debts;
+using Expense.Infrastructure.Notifications;
+using Expense.Core.Abstractions.Notifications;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -183,6 +185,11 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IActivityLogService, ActivityLogService>();
         services.AddScoped<ISettlementService, SettlementService>();
         services.AddScoped<IDebtSimplificationService, DebtSimplificationService>();
+        
+        // Notifications
+        services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();
+        services.AddScoped<IRealtimeNotifier, NativeWebSocketNotifier>();
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         
@@ -220,6 +227,16 @@ public static class ApplicationServiceExtensions
             };
             options.Events = new JwtBearerEvents
             {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/ws/notifications"))
+                    {
+                        context.Token = accessToken;
+                    }
+                    return Task.CompletedTask;
+                },
                 OnTokenValidated = async context =>
                 {
                     var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();

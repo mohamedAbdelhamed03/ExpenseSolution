@@ -1,5 +1,6 @@
 
 using Expense.API.Middlewares;
+using Expense.Infrastructure.Notifications;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -32,6 +33,8 @@ public static class ApplicationMiddlewareExtensions
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseAuthentication();
+        app.UseWebSockets();
+        app.UseMiddleware<WebSocketMiddleware>();
         app.UseAuthorization();
         app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 

@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using Expense.Core.Abstractions.ActivityLogs;
 using Expense.Core.Abstractions.Groups;
 using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Abstractions.Notifications;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.Enums;
 using Expense.Core.DTOs.Groups;
+using Expense.Core.DTOs.Notifications;
 using FluentValidation;
 
 namespace Expense.Infrastructure.Groups
@@ -15,15 +17,18 @@ namespace Expense.Infrastructure.Groups
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IActivityLogService _activityLogService;
+        private readonly IRealtimeNotifier _notifier;
         private readonly IValidator<UpdateGroupMemberRolePatchDto> _patchValidator;
         
         public GroupService(
             IUnitOfWork unitOfWork, 
             IActivityLogService activityLogService,
+            IRealtimeNotifier notifier,
             IValidator<UpdateGroupMemberRolePatchDto> patchValidator)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
+            _notifier = notifier;
             _patchValidator = patchValidator;
         }
 
@@ -116,7 +121,35 @@ namespace Expense.Infrastructure.Groups
 
             await _unitOfWork.SaveAsync(cancellationToken);
             
+            await NotifyGroupMembersAsync(group.Id, userId, "Member_Joined", new { UserId = userId }, cancellationToken);
+
             return true;
+        }
+
+        private async Task NotifyGroupMembersAsync(Guid groupId, string actorUserId, string type, object payload, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var members = await _unitOfWork.Repository<GroupMember>().GetAll(m => m.GroupId == groupId);
+                var userIds = members.Select(m => m.UserId).Where(u => u != actorUserId).Distinct().ToList();
+
+                if (userIds.Any())
+                {
+                    var message = new NotificationMessage
+                    {
+                        Type = type,
+                        GroupId = groupId,
+                        ActorUserId = actorUserId,
+                        Payload = payload,
+                        Timestamp = DateTime.UtcNow
+                    };
+                    await _notifier.NotifyUsersAsync(userIds, message, cancellationToken);
+                }
+            }
+            catch
+            {
+                // Fire and forget
+            }
         }
 
         public async Task<IEnumerable<GroupDto>> GetUserGroupsAsync(string userId, CancellationToken cancellationToken)

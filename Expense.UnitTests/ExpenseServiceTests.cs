@@ -11,6 +11,7 @@ using Expense.Infrastructure.Data;
 using Expense.Infrastructure.Expenses;
 using Expense.Infrastructure.Repositories;
 using Expense.Core.Abstractions.ActivityLogs;
+using Expense.Core.Abstractions.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Moq;
@@ -24,6 +25,7 @@ namespace Expense.UnitTests
         private readonly Mock<IValidator<CreateExpenseDto>> _mockCreateValidator;
         private readonly Mock<IValidator<UpdateExpenseDto>> _mockUpdateValidator;
         private readonly Mock<IValidator<UpdateExpensePatchDto>> _mockPatchValidator;
+        private readonly Mock<IRealtimeNotifier> _mockNotifier;
 
         public ExpenseServiceTests()
         {
@@ -38,6 +40,8 @@ namespace Expense.UnitTests
             _mockPatchValidator = new Mock<IValidator<UpdateExpensePatchDto>>();
             _mockPatchValidator.Setup(v => v.ValidateAsync(It.IsAny<UpdateExpensePatchDto>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+            _mockNotifier = new Mock<IRealtimeNotifier>();
         }
 
         private ApplicationDbContext CreateContext(string dbName)
@@ -65,6 +69,7 @@ namespace Expense.UnitTests
             var service = new ExpenseService(
                 new UnitOfWork(context), 
                 mockActivityLogService.Object,
+                _mockNotifier.Object,
                 _mockCreateValidator.Object,
                 _mockUpdateValidator.Object,
                 _mockPatchValidator.Object);
@@ -105,6 +110,7 @@ namespace Expense.UnitTests
             var service = new ExpenseService(
                 new UnitOfWork(context), 
                 mockActivityLogService.Object,
+                _mockNotifier.Object,
                 _mockCreateValidator.Object,
                 _mockUpdateValidator.Object,
                 _mockPatchValidator.Object);
@@ -131,6 +137,7 @@ namespace Expense.UnitTests
             var service = new ExpenseService(
                 new UnitOfWork(context), 
                 mockActivityLogService.Object,
+                _mockNotifier.Object,
                 _mockCreateValidator.Object,
                 _mockUpdateValidator.Object,
                 _mockPatchValidator.Object);
@@ -169,6 +176,7 @@ namespace Expense.UnitTests
             var service = new ExpenseService(
                 new UnitOfWork(context), 
                 mockActivityLogService.Object,
+                _mockNotifier.Object,
                 _mockCreateValidator.Object,
                 _mockUpdateValidator.Object,
                 _mockPatchValidator.Object);
