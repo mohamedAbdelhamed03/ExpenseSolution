@@ -19,6 +19,7 @@ We use Service + Repository rather than full CQRS to keep the design pragmatic w
 - Expense Splitting: Supports equal splits (with rounding tolerance) and custom amount splits. Custom splits require membership and must sum to the total amount.
 - Balance Calculation: Balances are derived from total paid vs total shared, with settlements applied to adjust net position.
 - Settlement Rules: Settlements are validated for membership, positive amount, and over‑settlement protection based on debtor balance.
+- Debt Simplification: Minimizes the number of transactions needed to settle up using a greedy algorithm. Calculates simplified transfers per currency without altering net balances.
 - Currency Handling: Default currency is `EGP`. Non‑EGP expenses require an exchange‑rate snapshot that is persisted and treated as immutable.
 
 ## Data Consistency & Safety

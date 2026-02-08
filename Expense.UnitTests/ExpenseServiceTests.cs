@@ -23,6 +23,7 @@ namespace Expense.UnitTests
     {
         private readonly Mock<IValidator<CreateExpenseDto>> _mockCreateValidator;
         private readonly Mock<IValidator<UpdateExpenseDto>> _mockUpdateValidator;
+        private readonly Mock<IValidator<UpdateExpensePatchDto>> _mockPatchValidator;
 
         public ExpenseServiceTests()
         {
@@ -32,6 +33,10 @@ namespace Expense.UnitTests
 
             _mockUpdateValidator = new Mock<IValidator<UpdateExpenseDto>>();
             _mockUpdateValidator.Setup(v => v.ValidateAsync(It.IsAny<UpdateExpenseDto>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+            _mockPatchValidator = new Mock<IValidator<UpdateExpensePatchDto>>();
+            _mockPatchValidator.Setup(v => v.ValidateAsync(It.IsAny<UpdateExpensePatchDto>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new FluentValidation.Results.ValidationResult());
         }
 
@@ -61,7 +66,8 @@ namespace Expense.UnitTests
                 new UnitOfWork(context), 
                 mockActivityLogService.Object,
                 _mockCreateValidator.Object,
-                _mockUpdateValidator.Object);
+                _mockUpdateValidator.Object,
+                _mockPatchValidator.Object);
 
             var dto = new CreateExpenseDto
             {
@@ -100,7 +106,8 @@ namespace Expense.UnitTests
                 new UnitOfWork(context), 
                 mockActivityLogService.Object,
                 _mockCreateValidator.Object,
-                _mockUpdateValidator.Object);
+                _mockUpdateValidator.Object,
+                _mockPatchValidator.Object);
             var dto = new CreateExpenseDto { Amount = 100 };
 
             // Act & Assert
@@ -125,7 +132,8 @@ namespace Expense.UnitTests
                 new UnitOfWork(context), 
                 mockActivityLogService.Object,
                 _mockCreateValidator.Object,
-                _mockUpdateValidator.Object);
+                _mockUpdateValidator.Object,
+                _mockPatchValidator.Object);
             var dto = new CreateExpenseDto
             {
                 Amount = 100,
@@ -162,7 +170,8 @@ namespace Expense.UnitTests
                 new UnitOfWork(context), 
                 mockActivityLogService.Object,
                 _mockCreateValidator.Object,
-                _mockUpdateValidator.Object);
+                _mockUpdateValidator.Object,
+                _mockPatchValidator.Object);
             
             var dto = new CreateExpenseDto
             {

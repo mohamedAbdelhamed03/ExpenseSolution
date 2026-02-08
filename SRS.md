@@ -74,6 +74,11 @@ Clean Architecture with layered separation:
 1. Expense, settlement, group membership, and category changes are logged.
 2. Activity logs are committed atomically with the business operation.
 
+### 3.10 Debt Simplification
+1. Users can view a simplified debt plan that minimizes the total number of transactions required to settle balances.
+2. Simplification is calculated dynamically based on current balances.
+3. Simplification respects currency boundaries (debts in different currencies are not merged).
+
 ## 4. Non‑Functional Requirements
 
 ### 4.1 Performance
@@ -112,6 +117,11 @@ Clean Architecture with layered separation:
 ### 5.4 Currency Rules
 1. Default currency is `EGP` if not specified.
 2. Non‑EGP currency requires an exchange rate snapshot.
+
+### 5.5 Debt Simplification Rules
+1. Simplification must preserve each user's net balance (total owed vs total owing) within each currency.
+2. Simplification ignores balances within a small tolerance (e.g., < 0.01) to avoid micro-transactions.
+3. The generated plan is read-only and does not automatically execute settlements.
 
 ## 6. Assumptions & Constraints
 - Backend-only system.

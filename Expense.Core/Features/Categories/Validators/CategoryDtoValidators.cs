@@ -28,4 +28,19 @@ namespace Expense.Core.Features.Categories.Validators
                 .MaximumLength(200).WithErrorCode("Category.Description.MaxLength");
         }
     }
+
+    public class UpdateCategoryPatchDtoValidator : AbstractValidator<UpdateCategoryPatchDto>
+    {
+        public UpdateCategoryPatchDtoValidator()
+        {
+             RuleFor(x => x)
+                .Must(x => x.Name != null)
+                .WithErrorCode("Patch.NoFieldsProvided")
+                .WithMessage("At least one field must be provided for update");
+
+            RuleFor(x => x.Name)
+                .NotEmpty().When(x => x.Name != null).WithErrorCode("Category.Name.Required")
+                .MaximumLength(50).When(x => x.Name != null).WithErrorCode("Category.Name.MaxLength");
+        }
+    }
 }

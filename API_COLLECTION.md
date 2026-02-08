@@ -201,6 +201,34 @@
 - Description: List settlements for group
 - Auth required: Yes
 
+## Debts
+
+### GET /api/groups/{groupId}/debts/simplified
+- Description: Get simplified debt graph (minimized transactions) to settle up efficiently.
+- Auth required: Yes
+- Success response:
+```json
+{
+  "success": true,
+  "message": null,
+  "data": [
+    {
+      "currency": "USD",
+      "transfers": [
+        {
+          "fromUserId": "u1",
+          "toUserId": "u2",
+          "amount": 50.00,
+          "currency": "USD"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "statusCode": 200
+}
+```
+
 ## Categories
 
 ### POST /api/groups/{groupId}/categories

@@ -57,6 +57,15 @@ namespace Expense.API.Controllers
             return Ok(APIResponse<ExpenseDto>.SuccessResponse(result, "Expense updated successfully"));
         }
 
+        [HttpPatch("{expenseId}")]
+        public async Task<ActionResult<APIResponse<ExpenseDto>>> UpdatePartial(Guid groupId, Guid expenseId, [FromBody] UpdateExpensePatchDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            
+            var result = await _expenseService.UpdateExpensePartialAsync(groupId, expenseId, userId, dto, HttpContext.RequestAborted);
+            return Ok(APIResponse<ExpenseDto>.SuccessResponse(result, "Expense updated successfully"));
+        }
+
         [HttpDelete("{expenseId}")]
         public async Task<ActionResult<APIResponse<bool>>> Delete(Guid groupId, Guid expenseId)
         {

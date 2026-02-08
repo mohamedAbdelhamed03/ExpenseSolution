@@ -7,6 +7,7 @@ using Expense.Core.Abstractions.Persistence;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.Enums;
 using Expense.Core.DTOs.Groups;
+using FluentValidation;
 
 namespace Expense.Infrastructure.Groups
 {
@@ -14,11 +15,16 @@ namespace Expense.Infrastructure.Groups
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IActivityLogService _activityLogService;
+        private readonly IValidator<UpdateGroupMemberRolePatchDto> _patchValidator;
         
-        public GroupService(IUnitOfWork unitOfWork, IActivityLogService activityLogService)
+        public GroupService(
+            IUnitOfWork unitOfWork, 
+            IActivityLogService activityLogService,
+            IValidator<UpdateGroupMemberRolePatchDto> patchValidator)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
+            _patchValidator = patchValidator;
         }
 
         public async Task<GroupDto> CreateGroupAsync(string creatorUserId, CreateGroupDto dto, CancellationToken cancellationToken)
@@ -147,6 +153,35 @@ namespace Expense.Infrastructure.Groups
                 await _unitOfWork.SaveAsync(cancellationToken);
 
                 return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> UpdateMemberRolePartialAsync(Guid groupId, string requesterUserId, string targetUserId, UpdateGroupMemberRolePatchDto dto, CancellationToken cancellationToken)
+        {
+            await _patchValidator.ValidateAndThrowAsync(dto, cancellationToken);
+
+            var requester = await _unitOfWork.Groups.GetMemberAsync(groupId, requesterUserId, cancellationToken);
+            if (requester == null || requester.Role != GroupRole.Admin) return false;
+
+            var target = await _unitOfWork.Groups.GetMemberAsync(groupId, targetUserId, cancellationToken);
+            if (target == null) return false;
+
+            if (dto.Role != null)
+            {
+                if (Enum.TryParse<GroupRole>(dto.Role, true, out var roleEnum))
+                {
+                    if (target.Role != roleEnum)
+                    {
+                        target.Role = roleEnum;
+                        _unitOfWork.Groups.UpdateMember(target);
+
+                        await _activityLogService.LogActivityAsync(groupId, targetUserId, ActivityType.Updated, EntityType.Member, targetUserId, $"Role updated to {dto.Role} by {requesterUserId}", cancellationToken);
+
+                        await _unitOfWork.SaveAsync(cancellationToken);
+                        return true;
+                    }
+                }
             }
             return false;
         }

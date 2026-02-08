@@ -59,6 +59,17 @@ namespace Expense.API.Controllers
             return Ok(APIResponse<object>.SuccessResponse(null, "Member role updated"));
         }
 
+        [HttpPatch("{groupId:guid}/members/{userId}/role")]
+        public async Task<ActionResult<APIResponse<object>>> UpdateMemberRolePartial(Guid groupId, string userId, [FromBody] UpdateGroupMemberRolePatchDto dto)
+        {
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var success = await _groupService.UpdateMemberRolePartialAsync(groupId, requesterId, userId, dto, HttpContext.RequestAborted);
+            
+            if (!success) return Forbid();
+
+            return Ok(APIResponse<object>.SuccessResponse(null, "Member role updated"));
+        }
+
         [HttpDelete("{groupId:guid}/members/{userId}")]
         public async Task<ActionResult<APIResponse<object>>> RemoveMember(Guid groupId, string userId)
         {

@@ -21,17 +21,20 @@ namespace Expense.Infrastructure.Expenses
         private readonly IActivityLogService _activityLogService;
         private readonly IValidator<CreateExpenseDto> _createValidator;
         private readonly IValidator<UpdateExpenseDto> _updateValidator;
+        private readonly IValidator<UpdateExpensePatchDto> _patchValidator;
         
         public ExpenseService(
             IUnitOfWork unitOfWork, 
             IActivityLogService activityLogService,
             IValidator<CreateExpenseDto> createValidator,
-            IValidator<UpdateExpenseDto> updateValidator)
+            IValidator<UpdateExpenseDto> updateValidator,
+            IValidator<UpdateExpensePatchDto> patchValidator)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
+            _patchValidator = patchValidator;
         }
 
         public async Task<ExpenseDto> CreateExpenseAsync(Guid groupId, string paidByUserId, CreateExpenseDto dto, CancellationToken cancellationToken = default)
@@ -338,6 +341,84 @@ namespace Expense.Infrastructure.Expenses
                 ExpenseDate = expense.ExpenseDate,
                 CategoryId = expense.CategoryId,
                 Splits = newSplits
+            };
+        }
+
+        public async Task<ExpenseDto> UpdateExpensePartialAsync(Guid groupId, Guid expenseId, string userId, UpdateExpensePatchDto dto, CancellationToken cancellationToken = default)
+        {
+            await _patchValidator.ValidateAndThrowAsync(dto, cancellationToken);
+
+            var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, userId, cancellationToken);
+            if (!isMember) throw new GroupAccessDeniedException("Group_NotMember");
+
+            var expense = await _unitOfWork.Expenses.Get(e => e.Id == expenseId, false, e => e.Splits);
+            if (expense == null) throw new NotFoundException("Expense.NotFound");
+            if (expense.GroupId != groupId) throw new BusinessException("Expense_GroupMismatch");
+
+            // Permission check: Member + (Payer or Admin)
+            var member = await _unitOfWork.Groups.GetMemberAsync(expense.GroupId, userId, cancellationToken);
+            if (member == null) throw new GroupAccessDeniedException("Group_NotMember");
+
+            if (expense.PaidByUserId != userId && member.Role != GroupRole.Admin)
+            {
+                 throw new GroupAccessDeniedException("Expense_Modify_Denied");
+            }
+
+            // Apply updates
+            bool changed = false;
+            var changes = new List<string>();
+
+            if (dto.Description != null && dto.Description != expense.Description)
+            {
+                expense.Description = dto.Description;
+                changes.Add($"Description changed");
+                changed = true;
+            }
+
+            if (dto.ExpenseDate.HasValue && dto.ExpenseDate != expense.ExpenseDate)
+            {
+                expense.ExpenseDate = dto.ExpenseDate.Value;
+                changes.Add($"Date changed to {dto.ExpenseDate}");
+                changed = true;
+            }
+
+            if (dto.CategoryId.HasValue && dto.CategoryId != expense.CategoryId)
+            {
+                 var category = await _unitOfWork.Categories.Get(c => c.Id == dto.CategoryId.Value);
+                 if (category == null || category.GroupId != expense.GroupId)
+                 {
+                      throw new BusinessException("Category_Invalid");
+                 }
+                 expense.CategoryId = dto.CategoryId;
+                 changes.Add($"Category changed");
+                 changed = true;
+            }
+
+            if (changed)
+            {
+                _unitOfWork.Expenses.Update(expense);
+                
+                await _activityLogService.LogActivityAsync(groupId, userId, ActivityType.Updated, EntityType.Expense, expense.Id.ToString(), $"Partial update: {string.Join(", ", changes)}", cancellationToken);
+                
+                await _unitOfWork.SaveAsync(cancellationToken);
+            }
+
+            return new ExpenseDto
+            {
+                Id = expense.Id,
+                GroupId = expense.GroupId,
+                PaidByUserId = expense.PaidByUserId,
+                Amount = expense.Amount,
+                Currency = expense.Currency,
+                ExchangeRate = expense.ExchangeRate,
+                Description = expense.Description,
+                ExpenseDate = expense.ExpenseDate,
+                CategoryId = expense.CategoryId,
+                Splits = expense.Splits.Select(s => new ExpenseSplitDto
+                {
+                    UserId = s.UserId,
+                    Amount = s.Amount
+                }).ToList()
             };
         }
 

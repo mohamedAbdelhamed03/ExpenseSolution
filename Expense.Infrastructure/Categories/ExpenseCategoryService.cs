@@ -20,17 +20,20 @@ namespace Expense.Infrastructure.Categories
         private readonly IActivityLogService _activityLogService;
         private readonly IValidator<CreateExpenseCategoryDto> _createValidator;
         private readonly IValidator<UpdateExpenseCategoryDto> _updateValidator;
+        private readonly IValidator<UpdateCategoryPatchDto> _patchValidator;
 
         public ExpenseCategoryService(
             IUnitOfWork unitOfWork,
             IActivityLogService activityLogService,
             IValidator<CreateExpenseCategoryDto> createValidator,
-            IValidator<UpdateExpenseCategoryDto> updateValidator)
+            IValidator<UpdateExpenseCategoryDto> updateValidator,
+            IValidator<UpdateCategoryPatchDto> patchValidator)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
+            _patchValidator = patchValidator;
         }
 
         public async Task<ExpenseCategoryDto> CreateCategoryAsync(Guid groupId, string userId, CreateExpenseCategoryDto dto, CancellationToken cancellationToken)
@@ -128,6 +131,49 @@ namespace Expense.Infrastructure.Categories
             await _activityLogService.LogActivityAsync(category.GroupId, userId, ActivityType.Updated, EntityType.Category, category.Id.ToString(), $"Category '{category.Name}' updated", cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+
+            return MapToDto(category);
+        }
+
+        public async Task<ExpenseCategoryDto?> UpdateCategoryPartialAsync(Guid categoryId, string userId, UpdateCategoryPatchDto dto, CancellationToken cancellationToken)
+        {
+            await _patchValidator.ValidateAndThrowAsync(dto, cancellationToken);
+
+            var category = await _unitOfWork.Categories.Get(c => c.Id == categoryId);
+            if (category == null)
+            {
+                throw new NotFoundException("Category_NotFound");
+            }
+
+            var member = await _unitOfWork.Groups.GetMemberAsync(category.GroupId, userId, cancellationToken);
+            if (member == null)
+            {
+                 throw new GroupAccessDeniedException("Group_NotMember");
+            }
+            
+            if (member.Role != GroupRole.Admin)
+            {
+                throw new GroupAccessDeniedException("Group_AdminRequired");
+            }
+
+            bool changed = false;
+            if (dto.Name != null && dto.Name != category.Name)
+            {
+                var existing = await _unitOfWork.Categories.GetByNameAsync(category.GroupId, dto.Name, cancellationToken);
+                if (existing != null)
+                {
+                    throw new BusinessException("Category_AlreadyExists");
+                }
+                category.Name = dto.Name;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                _unitOfWork.Categories.Update(category);
+                await _activityLogService.LogActivityAsync(category.GroupId, userId, ActivityType.Updated, EntityType.Category, category.Id.ToString(), $"Category partially updated", cancellationToken);
+                await _unitOfWork.SaveAsync(cancellationToken);
+            }
 
             return MapToDto(category);
         }

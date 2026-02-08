@@ -11,6 +11,7 @@ namespace Expense.Core.Abstractions.Categories
         Task<ExpenseCategoryDto> CreateCategoryAsync(Guid groupId, string userId, CreateExpenseCategoryDto dto, CancellationToken cancellationToken);
         Task<IEnumerable<ExpenseCategoryDto>> GetCategoriesAsync(Guid groupId, string userId, CancellationToken cancellationToken);
         Task<ExpenseCategoryDto?> UpdateCategoryAsync(Guid categoryId, string userId, UpdateExpenseCategoryDto dto, CancellationToken cancellationToken);
+        Task<ExpenseCategoryDto?> UpdateCategoryPartialAsync(Guid categoryId, string userId, UpdateCategoryPatchDto dto, CancellationToken cancellationToken);
         Task<bool> DeleteCategoryAsync(Guid categoryId, string userId, CancellationToken cancellationToken);
     }
 }

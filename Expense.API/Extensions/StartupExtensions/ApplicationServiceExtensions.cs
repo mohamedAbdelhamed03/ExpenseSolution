@@ -31,6 +31,8 @@ using Expense.Core.Abstractions.ActivityLogs;
 using Expense.Infrastructure.ActivityLogs;
 using Expense.Core.Abstractions.Settlements;
 using Expense.Infrastructure.Settlements;
+using Expense.Core.Abstractions.Debts;
+using Expense.Infrastructure.Debts;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -180,6 +182,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IBalanceService, BalanceService>();
         services.AddScoped<IActivityLogService, ActivityLogService>();
         services.AddScoped<ISettlementService, SettlementService>();
+        services.AddScoped<IDebtSimplificationService, DebtSimplificationService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         

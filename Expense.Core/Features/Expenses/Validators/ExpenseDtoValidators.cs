@@ -76,4 +76,22 @@ namespace Expense.Core.Features.Expenses.Validators
                 .WithErrorCode("Expense.Splits.SumMismatch");
         }
     }
+
+    public class UpdateExpensePatchDtoValidator : AbstractValidator<UpdateExpensePatchDto>
+    {
+        public UpdateExpensePatchDtoValidator()
+        {
+            RuleFor(x => x)
+                .Must(x => x.Description != null || x.CategoryId.HasValue || x.ExpenseDate.HasValue)
+                .WithErrorCode("Patch.NoFieldsProvided")
+                .WithMessage("At least one field must be provided for update");
+
+            RuleFor(x => x.Description)
+                .NotEmpty().When(x => x.Description != null).WithErrorCode("Expense.Description.Required")
+                .MaximumLength(500).When(x => x.Description != null).WithErrorCode("Expense.Description.MaxLength");
+
+            RuleFor(x => x.ExpenseDate)
+                .LessThanOrEqualTo(DateTime.UtcNow.AddDays(1)).When(x => x.ExpenseDate.HasValue).WithErrorCode("Expense.Date.Future");
+        }
+    }
 }

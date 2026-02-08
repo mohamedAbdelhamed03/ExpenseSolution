@@ -47,6 +47,16 @@ namespace Expense.API.Controllers
             return Ok(APIResponse<ExpenseCategoryDto>.SuccessResponse(result, "Category updated successfully"));
         }
 
+        [HttpPatch("api/categories/{categoryId:guid}")]
+        public async Task<ActionResult<APIResponse<ExpenseCategoryDto>>> UpdateCategoryPartial(Guid categoryId, [FromBody] UpdateCategoryPatchDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var result = await _categoryService.UpdateCategoryPartialAsync(categoryId, userId, dto, HttpContext.RequestAborted);
+            if (result == null) return NotFound(APIResponse<object>.ErrorResponse("Category not found", statusCode: 404));
+
+            return Ok(APIResponse<ExpenseCategoryDto>.SuccessResponse(result, "Category updated successfully"));
+        }
+
         [HttpDelete("api/categories/{categoryId:guid}")]
         public async Task<ActionResult<APIResponse<object>>> DeleteCategory(Guid categoryId)
         {
