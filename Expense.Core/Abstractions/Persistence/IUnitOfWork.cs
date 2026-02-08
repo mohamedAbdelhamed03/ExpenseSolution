@@ -13,6 +13,8 @@ namespace Expense.Core.Abstractions.Persistence
         IExpenseRepository Expenses { get; }
         IGroupRepository Groups { get; }
         IBalanceRepository Balances { get; }
+        IExpenseCategoryRepository Categories { get; }
+        IActivityLogRepository ActivityLogs { get; }
 		Task<int> SaveAsync(CancellationToken cancellationToken = default);
 	}
 }

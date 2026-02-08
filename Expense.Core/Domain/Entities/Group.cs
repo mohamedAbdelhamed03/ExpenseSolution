@@ -12,5 +12,8 @@ namespace Expense.Core.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<GroupMember> Members { get; set; } = new List<GroupMember>();
         public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
+        public ICollection<ExpenseCategory> Categories { get; set; } = new List<ExpenseCategory>();
+        public ICollection<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
+        public ICollection<Settlement> Settlements { get; set; } = new List<Settlement>();
     }
 }

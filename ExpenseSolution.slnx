@@ -2,5 +2,6 @@
   <Project Path="Expense.Core/Expense.Core.csproj" />
   <Project Path="Expense.API/Expense.API.csproj" />
   <Project Path="Expense.Infrastructure/Expense.Infrastructure.csproj" />
+  <Project Path="Expense.IntegrationTests/Expense.IntegrationTests.csproj" />
   <Project Path="Expense.UnitTests/Expense.UnitTests.csproj" />
 </Solution>

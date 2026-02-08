@@ -18,6 +18,9 @@ namespace Expense.Infrastructure.Data
 		public DbSet<GroupMember> GroupMembers { get; set; }
 		public DbSet<ExpenseEntity> Expenses { get; set; }
 		public DbSet<ExpenseSplit> ExpenseSplits { get; set; }
+		public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
+		public DbSet<ActivityLog> ActivityLogs { get; set; }
+		public DbSet<Settlement> Settlements { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -71,6 +74,8 @@ namespace Expense.Infrastructure.Data
 				entity.Property(e => e.GroupId).IsRequired();
 				entity.Property(e => e.PaidByUserId).IsRequired();
 				entity.Property(e => e.Amount).IsRequired();
+				entity.Property(e => e.Currency).IsRequired().HasMaxLength(3).HasDefaultValue("EGP");
+				entity.Property(e => e.ExchangeRate).HasDefaultValue(1.0m);
 				entity.Property(e => e.ExpenseDate).IsRequired();
 				entity.Property(e => e.CreatedAt).IsRequired();
 				entity.HasOne(e => e.Group)
@@ -78,6 +83,13 @@ namespace Expense.Infrastructure.Data
 					.HasForeignKey(e => e.GroupId)
 					.OnDelete(DeleteBehavior.Cascade);
 				entity.ToTable(t => t.HasCheckConstraint("CK_Expense_Amount_Positive", "[Amount] > 0"));
+				entity.HasOne(e => e.Category)
+					.WithMany()
+					.HasForeignKey(e => e.CategoryId)
+					.OnDelete(DeleteBehavior.NoAction);
+
+				entity.HasIndex(e => e.PaidByUserId);
+				entity.HasIndex(e => e.ExpenseDate);
 			});
 
 			modelBuilder.Entity<ExpenseSplit>(entity =>
@@ -90,6 +102,58 @@ namespace Expense.Infrastructure.Data
 					.HasForeignKey(e => e.ExpenseId)
 					.OnDelete(DeleteBehavior.Cascade);
 				entity.ToTable(t => t.HasCheckConstraint("CK_ExpenseSplit_Amount_Positive", "[Amount] > 0"));
+
+				entity.HasIndex(e => e.UserId);
+			});
+
+			modelBuilder.Entity<ExpenseCategory>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+				entity.Property(e => e.Description).HasMaxLength(500);
+				entity.Property(e => e.GroupId).IsRequired();
+				entity.Property(e => e.CreatedAt).IsRequired();
+				entity.HasOne(e => e.Group)
+					.WithMany(g => g.Categories)
+					.HasForeignKey(e => e.GroupId)
+					.OnDelete(DeleteBehavior.Cascade);
+			});
+
+			modelBuilder.Entity<ActivityLog>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.GroupId).IsRequired();
+				entity.Property(e => e.UserId).IsRequired();
+				entity.Property(e => e.Action).IsRequired().HasConversion<string>();
+				entity.Property(e => e.EntityType).IsRequired().HasConversion<string>();
+				entity.Property(e => e.EntityId).IsRequired();
+				entity.Property(e => e.Timestamp).IsRequired();
+				entity.HasOne(e => e.Group)
+					.WithMany(g => g.ActivityLogs)
+					.HasForeignKey(e => e.GroupId)
+					.OnDelete(DeleteBehavior.Cascade);
+			});
+
+			modelBuilder.Entity<Settlement>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.GroupId).IsRequired();
+				entity.Property(e => e.PayerUserId).IsRequired();
+				entity.Property(e => e.PayeeUserId).IsRequired();
+				entity.Property(e => e.Amount).IsRequired();
+				entity.Property(e => e.SettlementDate).IsRequired();
+				entity.Property(e => e.CreatedAt).IsRequired();
+
+				entity.HasOne(e => e.Group)
+					.WithMany(g => g.Settlements)
+					.HasForeignKey(e => e.GroupId)
+					.OnDelete(DeleteBehavior.Cascade);
+
+				entity.ToTable(t => t.HasCheckConstraint("CK_Settlement_Amount_Positive", "[Amount] > 0"));
+
+				entity.HasIndex(e => e.PayerUserId);
+				entity.HasIndex(e => e.PayeeUserId);
+				entity.HasIndex(e => e.SettlementDate);
 			});
 		}
 	}

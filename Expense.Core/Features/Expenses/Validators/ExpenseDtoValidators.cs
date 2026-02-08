@@ -11,15 +11,26 @@ namespace Expense.Core.Features.Expenses.Validators
                 .GreaterThan(0).WithErrorCode("Expense.Amount.Positive");
 
             RuleFor(x => x.Description)
+                .NotEmpty().WithErrorCode("Expense.Description.Required")
                 .MaximumLength(500).WithErrorCode("Expense.Description.MaxLength");
 
             RuleFor(x => x.ExpenseDate)
-                .NotEmpty().WithErrorCode("Expense.Date.Required");
-
-            RuleFor(x => x.Splits)
-                .NotEmpty().WithErrorCode("Expense.Splits.Required");
+                .NotEmpty().WithErrorCode("Expense.Date.Required")
+                .LessThanOrEqualTo(DateTime.UtcNow.AddDays(1)).WithErrorCode("Expense.Date.Future");
 
             RuleForEach(x => x.Splits).SetValidator(new ExpenseSplitDtoValidator());
+
+            RuleFor(x => x.Currency)
+                .NotEmpty().WithErrorCode("Expense.Currency.Required")
+                .Length(3).WithErrorCode("Expense.Currency.InvalidFormat");
+
+            RuleFor(x => x.ExchangeRate)
+                .GreaterThan(0).When(x => x.ExchangeRate.HasValue)
+                .WithErrorCode("Expense.ExchangeRate.Positive");
+
+            RuleFor(x => x)
+                .Must(x => x.Splits == null || !x.Splits.Any() || Math.Abs(x.Splits.Sum(s => s.Amount) - x.Amount) < 0.01m)
+                .WithErrorCode("Expense.Splits.SumMismatch");
         }
     }
 
@@ -32,6 +43,37 @@ namespace Expense.Core.Features.Expenses.Validators
 
             RuleFor(x => x.Amount)
                 .GreaterThan(0).WithErrorCode("Expense.Split.Amount.Positive");
+        }
+    }
+
+    public class UpdateExpenseDtoValidator : AbstractValidator<UpdateExpenseDto>
+    {
+        public UpdateExpenseDtoValidator()
+        {
+            RuleFor(x => x.Amount)
+                .GreaterThan(0).WithErrorCode("Expense.Amount.Positive");
+
+            RuleFor(x => x.Description)
+                .NotEmpty().WithErrorCode("Expense.Description.Required")
+                .MaximumLength(500).WithErrorCode("Expense.Description.MaxLength");
+
+            RuleFor(x => x.ExpenseDate)
+                .NotEmpty().WithErrorCode("Expense.Date.Required")
+                .LessThanOrEqualTo(DateTime.UtcNow.AddDays(1)).WithErrorCode("Expense.Date.Future");
+
+            RuleFor(x => x.Currency)
+                .NotEmpty().WithErrorCode("Expense.Currency.Required")
+                .Length(3).WithErrorCode("Expense.Currency.InvalidFormat");
+                
+            RuleFor(x => x.ExchangeRate)
+                .GreaterThan(0).When(x => x.ExchangeRate.HasValue)
+                .WithErrorCode("Expense.ExchangeRate.Positive");
+                
+             RuleForEach(x => x.Splits).SetValidator(new ExpenseSplitDtoValidator());
+
+             RuleFor(x => x)
+                .Must(x => x.Splits == null || !x.Splits.Any() || Math.Abs(x.Splits.Sum(s => s.Amount) - x.Amount) < 0.01m)
+                .WithErrorCode("Expense.Splits.SumMismatch");
         }
     }
 }

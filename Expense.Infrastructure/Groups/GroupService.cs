@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Expense.Core.Abstractions.ActivityLogs;
 using Expense.Core.Abstractions.Groups;
 using Expense.Core.Abstractions.Persistence;
 using Expense.Core.Domain.Entities;
+using Expense.Core.Domain.Enums;
 using Expense.Core.DTOs.Groups;
 
 namespace Expense.Infrastructure.Groups
@@ -11,10 +13,12 @@ namespace Expense.Infrastructure.Groups
     public class GroupService : IGroupService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IActivityLogService _activityLogService;
         
-        public GroupService(IUnitOfWork unitOfWork)
+        public GroupService(IUnitOfWork unitOfWork, IActivityLogService activityLogService)
         {
             _unitOfWork = unitOfWork;
+            _activityLogService = activityLogService;
         }
 
         public async Task<GroupDto> CreateGroupAsync(string creatorUserId, CreateGroupDto dto, CancellationToken cancellationToken)
@@ -22,6 +26,7 @@ namespace Expense.Infrastructure.Groups
             var inviteCode = Guid.NewGuid().ToString("N")[..8];
             var group = new Group
             {
+                Id = Guid.NewGuid(),
                 Name = dto.Name,
                 CreatedByUserId = creatorUserId,
                 InviteCode = inviteCode
@@ -37,6 +42,9 @@ namespace Expense.Infrastructure.Groups
             };
             
             _unitOfWork.Groups.AddMember(member);
+
+            await _activityLogService.LogActivityAsync(group.Id, creatorUserId, ActivityType.Created, EntityType.Group, group.Id.ToString(), $"Group '{group.Name}' created", cancellationToken);
+
             await _unitOfWork.SaveAsync(cancellationToken);
 
             // Map directly from entity since we have all data in memory
@@ -97,8 +105,75 @@ namespace Expense.Infrastructure.Groups
             };
             
             _unitOfWork.Groups.AddMember(member);
+
+            await _activityLogService.LogActivityAsync(group.Id, userId, ActivityType.Joined, EntityType.Group, group.Id.ToString(), null, cancellationToken);
+
             await _unitOfWork.SaveAsync(cancellationToken);
             
+            return true;
+        }
+
+        public async Task<IEnumerable<GroupDto>> GetUserGroupsAsync(string userId, CancellationToken cancellationToken)
+        {
+            var groups = await _unitOfWork.Groups.GetGroupsForUserAsync(userId, cancellationToken);
+            return groups.Select(g => new GroupDto
+            {
+                Id = g.Id,
+                Name = g.Name,
+                InviteCode = g.InviteCode,
+                Members = g.Members.Select(m => new GroupMemberDto
+                {
+                    UserId = m.UserId,
+                    Role = m.Role.ToString()
+                })
+            });
+        }
+
+        public async Task<bool> UpdateMemberRoleAsync(Guid groupId, string requesterUserId, string targetUserId, string newRole, CancellationToken cancellationToken)
+        {
+            var requester = await _unitOfWork.Groups.GetMemberAsync(groupId, requesterUserId, cancellationToken);
+            if (requester == null || requester.Role != GroupRole.Admin) return false;
+
+            var target = await _unitOfWork.Groups.GetMemberAsync(groupId, targetUserId, cancellationToken);
+            if (target == null) return false;
+
+            if (Enum.TryParse<GroupRole>(newRole, true, out var roleEnum))
+            {
+                target.Role = roleEnum;
+                _unitOfWork.Groups.UpdateMember(target);
+
+                await _activityLogService.LogActivityAsync(groupId, targetUserId, ActivityType.Updated, EntityType.Member, targetUserId, $"Role updated to {newRole} by {requesterUserId}", cancellationToken);
+
+                await _unitOfWork.SaveAsync(cancellationToken);
+
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> RemoveMemberAsync(Guid groupId, string requesterUserId, string targetUserId, CancellationToken cancellationToken)
+        {
+            var requester = await _unitOfWork.Groups.GetMemberAsync(groupId, requesterUserId, cancellationToken);
+            if (requester == null) return false;
+
+            var target = await _unitOfWork.Groups.GetMemberAsync(groupId, targetUserId, cancellationToken);
+            if (target == null) return false;
+
+            // Admin can remove anyone; User can remove themselves
+            if (requester.Role != GroupRole.Admin && requesterUserId != targetUserId)
+            {
+                return false;
+            }
+
+            _unitOfWork.Groups.RemoveMember(target);
+
+            var activityType = requesterUserId == targetUserId ? ActivityType.Left : ActivityType.Removed;
+            var details = activityType == ActivityType.Removed ? $"Removed by admin {requesterUserId}" : null;
+
+            await _activityLogService.LogActivityAsync(groupId, targetUserId, activityType, EntityType.Group, groupId.ToString(), details, cancellationToken);
+
+            await _unitOfWork.SaveAsync(cancellationToken);
+
             return true;
         }
     }

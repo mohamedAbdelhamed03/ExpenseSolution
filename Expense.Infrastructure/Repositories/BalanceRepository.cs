@@ -35,5 +35,13 @@ namespace Expense.Infrastructure.Repositories
                 .Where(e => e.GroupId == groupId)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<IEnumerable<Settlement>> GetSettlementsAsync(Guid groupId, CancellationToken cancellationToken)
+        {
+            return await _db.Settlements
+                .AsNoTracking()
+                .Where(s => s.GroupId == groupId)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

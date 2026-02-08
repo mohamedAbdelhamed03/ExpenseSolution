@@ -16,6 +16,8 @@ namespace Expense.Infrastructure.Repositories
         public IExpenseRepository Expenses { get; private set; }
         public IGroupRepository Groups { get; private set; }
         public IBalanceRepository Balances { get; private set; }
+        public IExpenseCategoryRepository Categories { get; private set; }
+        public IActivityLogRepository ActivityLogs { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db)
 		{
@@ -24,6 +26,8 @@ namespace Expense.Infrastructure.Repositories
             Expenses = new ExpenseRepository(_db);
             Groups = new GroupRepository(_db);
             Balances = new BalanceRepository(_db);
+            Categories = new ExpenseCategoryRepository(_db);
+            ActivityLogs = new ActivityLogRepository(_db);
 		}
 
 		public IRepository<T> Repository<T>() where T : class

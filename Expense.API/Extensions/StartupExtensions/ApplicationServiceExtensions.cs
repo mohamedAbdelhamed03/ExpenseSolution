@@ -25,6 +25,12 @@ using Expense.Infrastructure.Balances;
 using Expense.Infrastructure.Authentication.Social;
 using Expense.Infrastructure.Repositories;
 using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Abstractions.Categories;
+using Expense.Infrastructure.Categories;
+using Expense.Core.Abstractions.ActivityLogs;
+using Expense.Infrastructure.ActivityLogs;
+using Expense.Core.Abstractions.Settlements;
+using Expense.Infrastructure.Settlements;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -44,21 +50,8 @@ public static class ApplicationServiceExtensions
         services.AddFluentValidationClientsideAdapters();
         services.AddCoreValidation();
 
-        // Assuming Program is in the entry assembly. 
-        // We can use Assembly.GetExecutingAssembly() or pass the type if needed, 
-        // but since this is an extension method, we might not have access to Program class if it's not public.
-        // Usually Program is internal in .NET 6+. 
-        // However, we can use a marker type or just GetEntryAssembly.
-        // The original code used typeof(Program).
-        // If Program is internal, we can't access it here easily unless we change visibility or use Assembly.GetEntryAssembly().
-        // Let's use Assembly.GetEntryAssembly() which usually points to Program's assembly.
-        var entryAssembly = Assembly.GetEntryAssembly();
-
-        if (entryAssembly != null)
-        {
-            services.AddValidatorsFromAssembly(entryAssembly);
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(entryAssembly));
-        }
+        var coreAssembly = typeof(ValidationBehavior<,>).Assembly;
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(coreAssembly));
 
         services.AddLocalization(options => options.ResourcesPath = "Resources");
         services.Configure<RequestLocalizationOptions>(options =>
@@ -183,7 +176,10 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IExpenseService, ExpenseService>();
+        services.AddScoped<IExpenseCategoryService, ExpenseCategoryService>();
         services.AddScoped<IBalanceService, BalanceService>();
+        services.AddScoped<IActivityLogService, ActivityLogService>();
+        services.AddScoped<ISettlementService, SettlementService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         

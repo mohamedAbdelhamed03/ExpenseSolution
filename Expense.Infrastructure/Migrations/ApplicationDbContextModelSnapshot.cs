@@ -22,6 +22,44 @@ namespace Expense.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Expense.Core.Domain.Entities.ActivityLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("ActivityLogs");
+                });
+
             modelBuilder.Entity("Expense.Core.Domain.Entities.Expense", b =>
                 {
                     b.Property<Guid>("Id")
@@ -31,11 +69,26 @@ namespace Expense.Infrastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasDefaultValue("EGP");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ExchangeRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(1.0m);
 
                     b.Property<DateTime>("ExpenseDate")
                         .HasColumnType("datetime2");
@@ -45,16 +98,53 @@ namespace Expense.Infrastructure.Migrations
 
                     b.Property<string>("PaidByUserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ExpenseDate");
+
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("PaidByUserId");
 
                     b.ToTable("Expenses", t =>
                         {
                             t.HasCheckConstraint("CK_Expense_Amount_Positive", "[Amount] > 0");
                         });
+                });
+
+            modelBuilder.Entity("Expense.Core.Domain.Entities.ExpenseCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("ExpenseCategories");
                 });
 
             modelBuilder.Entity("Expense.Core.Domain.Entities.ExpenseSplit", b =>
@@ -71,11 +161,13 @@ namespace Expense.Infrastructure.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ExpenseId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ExpenseSplits", t =>
                         {
@@ -184,6 +276,55 @@ namespace Expense.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("Expense.Core.Domain.Entities.Settlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ExchangeRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PayeeUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PayerUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("SettlementDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("PayeeUserId");
+
+                    b.HasIndex("PayerUserId");
+
+                    b.HasIndex("SettlementDate");
+
+                    b.ToTable("Settlements", t =>
+                        {
+                            t.HasCheckConstraint("CK_Settlement_Amount_Positive", "[Amount] > 0");
+                        });
                 });
 
             modelBuilder.Entity("Expense.Core.Domain.IdentityEntities.ApplicationRole", b =>
@@ -425,10 +566,39 @@ namespace Expense.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Expense.Core.Domain.Entities.Expense", b =>
+            modelBuilder.Entity("Expense.Core.Domain.Entities.ActivityLog", b =>
                 {
                     b.HasOne("Expense.Core.Domain.Entities.Group", "Group")
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("Expense.Core.Domain.Entities.Expense", b =>
+                {
+                    b.HasOne("Expense.Core.Domain.Entities.ExpenseCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Expense.Core.Domain.Entities.Group", "Group")
                         .WithMany("Expenses")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("Expense.Core.Domain.Entities.ExpenseCategory", b =>
+                {
+                    b.HasOne("Expense.Core.Domain.Entities.Group", "Group")
+                        .WithMany("Categories")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -451,6 +621,17 @@ namespace Expense.Infrastructure.Migrations
                 {
                     b.HasOne("Expense.Core.Domain.Entities.Group", "Group")
                         .WithMany("Members")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("Expense.Core.Domain.Entities.Settlement", b =>
+                {
+                    b.HasOne("Expense.Core.Domain.Entities.Group", "Group")
+                        .WithMany("Settlements")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -516,9 +697,15 @@ namespace Expense.Infrastructure.Migrations
 
             modelBuilder.Entity("Expense.Core.Domain.Entities.Group", b =>
                 {
+                    b.Navigation("ActivityLogs");
+
+                    b.Navigation("Categories");
+
                     b.Navigation("Expenses");
 
                     b.Navigation("Members");
+
+                    b.Navigation("Settlements");
                 });
 #pragma warning restore 612, 618
         }

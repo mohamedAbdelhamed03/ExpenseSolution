@@ -49,7 +49,8 @@ namespace Expense.Infrastructure.Authentication
                 LastName = registerDto.LastName,
                 PhoneNumber = registerDto.PhoneNumber,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                TokenVersion = 1
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);

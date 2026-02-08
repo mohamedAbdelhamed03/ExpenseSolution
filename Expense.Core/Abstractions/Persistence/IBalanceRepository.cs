@@ -10,5 +10,6 @@ namespace Expense.Core.Abstractions.Persistence
     {
         Task<IEnumerable<GroupMember>> GetMembersAsync(Guid groupId, CancellationToken cancellationToken);
         Task<IEnumerable<Expense.Core.Domain.Entities.Expense>> GetExpensesWithSplitsAsync(Guid groupId, CancellationToken cancellationToken);
+        Task<IEnumerable<Settlement>> GetSettlementsAsync(Guid groupId, CancellationToken cancellationToken);
     }
 }

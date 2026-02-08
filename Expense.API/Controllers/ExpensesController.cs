@@ -25,7 +25,7 @@ namespace Expense.API.Controllers
         public async Task<ActionResult<APIResponse<ExpenseDto>>> Create(Guid groupId, [FromBody] CreateExpenseDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var result = await _expenseService.CreateExpenseAsync(groupId, userId, dto);
+            var result = await _expenseService.CreateExpenseAsync(groupId, userId, dto, HttpContext.RequestAborted);
             return Ok(APIResponse<ExpenseDto>.SuccessResponse(result, "Expense created successfully"));
         }
 
@@ -33,8 +33,37 @@ namespace Expense.API.Controllers
         public async Task<ActionResult<APIResponse<IEnumerable<ExpenseDto>>>> List(Guid groupId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var result = await _expenseService.GetGroupExpensesAsync(groupId, userId);
+            var result = await _expenseService.GetGroupExpensesAsync(groupId, userId, HttpContext.RequestAborted);
             return Ok(APIResponse<IEnumerable<ExpenseDto>>.SuccessResponse(result));
+        }
+
+        [HttpGet("{expenseId}")]
+        public async Task<ActionResult<APIResponse<ExpenseDto>>> Get(Guid groupId, Guid expenseId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var result = await _expenseService.GetExpenseAsync(groupId, expenseId, userId, HttpContext.RequestAborted);
+            
+            if (result == null) return NotFound(APIResponse<object>.ErrorResponse("Expense not found"));
+
+            return Ok(APIResponse<ExpenseDto>.SuccessResponse(result));
+        }
+
+        [HttpPut("{expenseId}")]
+        public async Task<ActionResult<APIResponse<ExpenseDto>>> Update(Guid groupId, Guid expenseId, [FromBody] UpdateExpenseDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            
+            var result = await _expenseService.UpdateExpenseAsync(groupId, expenseId, userId, dto, HttpContext.RequestAborted);
+            return Ok(APIResponse<ExpenseDto>.SuccessResponse(result, "Expense updated successfully"));
+        }
+
+        [HttpDelete("{expenseId}")]
+        public async Task<ActionResult<APIResponse<bool>>> Delete(Guid groupId, Guid expenseId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            
+            var result = await _expenseService.DeleteExpenseAsync(groupId, expenseId, userId, HttpContext.RequestAborted);
+            return Ok(APIResponse<bool>.SuccessResponse(result, "Expense deleted successfully"));
         }
     }
 }

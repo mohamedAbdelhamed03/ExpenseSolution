@@ -29,6 +29,14 @@ namespace Expense.API.Controllers
             return Ok(APIResponse<GroupDto>.SuccessResponse(result, "Group created successfully"));
         }
 
+        [HttpGet]
+        public async Task<ActionResult<APIResponse<IEnumerable<GroupDto>>>> GetUserGroups()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var groups = await _groupService.GetUserGroupsAsync(userId, HttpContext.RequestAborted);
+            return Ok(APIResponse<IEnumerable<GroupDto>>.SuccessResponse(groups));
+        }
+
         [HttpGet("{groupId:guid}")]
         public async Task<ActionResult<APIResponse<GroupDto>>> GetGroup(Guid groupId)
         {
@@ -38,6 +46,28 @@ namespace Expense.API.Controllers
                 return Forbid(); // Or NotFound depending on business logic, keeping Forbid as per original
             
             return Ok(APIResponse<GroupDto>.SuccessResponse(result));
+        }
+
+        [HttpPut("{groupId:guid}/members/{userId}")]
+        public async Task<ActionResult<APIResponse<object>>> UpdateMemberRole(Guid groupId, string userId, [FromBody] UpdateGroupMemberRoleDto dto)
+        {
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var success = await _groupService.UpdateMemberRoleAsync(groupId, requesterId, userId, dto.Role, HttpContext.RequestAborted);
+            
+            if (!success) return Forbid();
+
+            return Ok(APIResponse<object>.SuccessResponse(null, "Member role updated"));
+        }
+
+        [HttpDelete("{groupId:guid}/members/{userId}")]
+        public async Task<ActionResult<APIResponse<object>>> RemoveMember(Guid groupId, string userId)
+        {
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var success = await _groupService.RemoveMemberAsync(groupId, requesterId, userId, HttpContext.RequestAborted);
+
+            if (!success) return Forbid();
+
+            return Ok(APIResponse<object>.SuccessResponse(null, "Member removed"));
         }
 
         [HttpPost("join/{inviteCode}")]
