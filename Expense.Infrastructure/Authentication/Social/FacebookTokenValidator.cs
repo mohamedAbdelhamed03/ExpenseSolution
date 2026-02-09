@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using Expense.Core.Abstractions.Authentication;
+using Expense.Core.Application.Authentication;
 using Expense.Core.Domain.Enums;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;

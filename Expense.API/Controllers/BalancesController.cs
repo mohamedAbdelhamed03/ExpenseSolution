@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Expense.Core.Abstractions.Balances;
+using Expense.Core.Application.Balances;
 using Expense.Core.DTOs.Balances;
 using Expense.Core.DTOs.Shared;
 using Microsoft.AspNetCore.Authorization;

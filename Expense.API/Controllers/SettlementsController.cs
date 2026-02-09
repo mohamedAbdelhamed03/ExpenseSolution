@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Expense.Core.Abstractions.Settlements;
+using Expense.Core.Application.Settlements;
 // using Expense.Core.Common.Responses; // Removing invalid reference
 using Expense.Core.Common.Exceptions; // Fixing invalid reference
 using Expense.Core.DTOs.Settlements;

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Expense.Core.Abstractions.Debts;
-using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Application.Debts;
+using Expense.Core.Application.Persistence;
 using Expense.Core.Common.Exceptions;
 using Expense.Core.DTOs.Debts;
 

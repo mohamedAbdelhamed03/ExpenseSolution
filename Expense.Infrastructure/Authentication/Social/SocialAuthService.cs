@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using Expense.Core.Abstractions.Authentication;
-using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Application.Authentication;
+using Expense.Core.Application.Persistence;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;

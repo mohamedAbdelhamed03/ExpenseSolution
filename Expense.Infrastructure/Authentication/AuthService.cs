@@ -6,8 +6,8 @@ using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
-using Expense.Core.Abstractions.Authentication;
-using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Application.Authentication;
+using Expense.Core.Application.Persistence;
 
 namespace Expense.Infrastructure.Authentication
 {

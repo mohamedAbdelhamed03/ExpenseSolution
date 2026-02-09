@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Expense.Core.Abstractions.Expenses;
+using Expense.Core.Application.Expenses;
 using Expense.Core.DTOs.Expenses;
 using Expense.Core.DTOs.Shared;
 using Microsoft.AspNetCore.Authorization;

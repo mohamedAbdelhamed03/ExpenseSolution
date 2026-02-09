@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Expense.Core.Abstractions.ActivityLogs;
-using Expense.Core.Abstractions.Groups;
-using Expense.Core.Abstractions.Persistence;
-using Expense.Core.Abstractions.Notifications;
+using Expense.Core.Application.ActivityLogs;
+using Expense.Core.Application.Groups;
+using Expense.Core.Application.Persistence;
+using Expense.Core.Application.Notifications;
 using Expense.Core.Domain.Entities;
 using Expense.Core.Domain.Enums;
 using Expense.Core.DTOs.Groups;

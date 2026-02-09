@@ -1,5 +1,5 @@
-using Expense.Core.Abstractions.Insights;
-using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Application.Insights;
+using Expense.Core.Application.Persistence;
 using Expense.Core.DTOs.Insights;
 using Expense.Core.Common.Exceptions;
 using System;

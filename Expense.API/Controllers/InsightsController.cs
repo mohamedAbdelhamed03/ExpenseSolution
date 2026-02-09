@@ -1,4 +1,4 @@
-using Expense.Core.Abstractions.Insights;
+using Expense.Core.Application.Insights;
 using Expense.Core.DTOs.Insights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

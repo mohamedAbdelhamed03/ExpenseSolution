@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Expense.Core.Abstractions.Persistence;
+using Expense.Core.Application.Persistence;
 using Expense.Core.DTOs.Notifications;
 using Expense.Core.DTOs.Shared;
 using Microsoft.AspNetCore.Authorization;

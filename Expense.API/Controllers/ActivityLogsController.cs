@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Expense.Core.Abstractions.ActivityLogs;
+using Expense.Core.Application.ActivityLogs;
 using Expense.Core.DTOs.ActivityLogs;
 using Expense.Core.DTOs.Shared;
 using Microsoft.AspNetCore.Authorization;
