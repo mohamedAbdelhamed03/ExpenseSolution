@@ -76,12 +76,14 @@ namespace Expense.IntegrationTests.Groups
         public async Task GetUserGroups_ShouldReturnOnlyUserGroups()
         {
              // 1. Authenticate User C
-            var tokenC = await AuthenticateAsync("userC@test.com", "Password123!");
+            var tokenC = await AuthenticateAsync($"userC_{Guid.NewGuid():N}@test.com", "Password123!");
 
             // 2. Create Group 1
-            await _client.PostAsJsonAsync("/api/groups", new CreateGroupDto { Name = "Group 1" });
+            var group1Name = $"Group 1 {Guid.NewGuid():N}";
+            await _client.PostAsJsonAsync("/api/groups", new CreateGroupDto { Name = group1Name });
             // 3. Create Group 2
-            await _client.PostAsJsonAsync("/api/groups", new CreateGroupDto { Name = "Group 2" });
+            var group2Name = $"Group 2 {Guid.NewGuid():N}";
+            await _client.PostAsJsonAsync("/api/groups", new CreateGroupDto { Name = group2Name });
 
             // 4. Get User Groups
             var response = await _client.GetAsync("/api/groups");
@@ -89,8 +91,8 @@ namespace Expense.IntegrationTests.Groups
             var result = await response.Content.ReadFromJsonAsync<APIResponse<IEnumerable<GroupDto>>>();
 
             result!.Data.Should().HaveCount(2);
-            result.Data.Should().Contain(g => g.Name == "Group 1");
-            result.Data.Should().Contain(g => g.Name == "Group 2");
+            result.Data.Should().Contain(g => g.Name == group1Name);
+            result.Data.Should().Contain(g => g.Name == group2Name);
         }
     }
 }

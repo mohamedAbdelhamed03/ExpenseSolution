@@ -35,6 +35,8 @@ using Expense.Core.Abstractions.Debts;
 using Expense.Infrastructure.Debts;
 using Expense.Infrastructure.Notifications;
 using Expense.Core.Abstractions.Notifications;
+using Expense.Core.Abstractions.Insights;
+using Expense.Infrastructure.Insights;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -185,6 +187,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IActivityLogService, ActivityLogService>();
         services.AddScoped<ISettlementService, SettlementService>();
         services.AddScoped<IDebtSimplificationService, DebtSimplificationService>();
+        services.AddScoped<IInsightsService, InsightsService>();
         
         // Notifications
         services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();

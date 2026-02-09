@@ -68,6 +68,7 @@ namespace Expense.Infrastructure.Notifications
                     var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
+                        _logger.LogInformation("WebSocket disconnected for user {UserId}", userId);
                         await _connectionManager.RemoveSocketAsync(userId, socket);
                         break;
                     }

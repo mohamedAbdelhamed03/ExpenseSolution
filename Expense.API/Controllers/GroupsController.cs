@@ -48,6 +48,14 @@ namespace Expense.API.Controllers
             return Ok(APIResponse<GroupDto>.SuccessResponse(result));
         }
 
+        [HttpPost("{groupId:guid}/members")]
+        public async Task<ActionResult<APIResponse<bool>>> AddMember(Guid groupId, [FromBody] AddGroupMemberDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            await _groupService.AddMemberByEmailAsync(groupId, userId, dto, HttpContext.RequestAborted);
+            return Ok(APIResponse<bool>.SuccessResponse(true, "Member added successfully"));
+        }
+
         [HttpPut("{groupId:guid}/members/{userId}")]
         public async Task<ActionResult<APIResponse<object>>> UpdateMemberRole(Guid groupId, string userId, [FromBody] UpdateGroupMemberRoleDto dto)
         {

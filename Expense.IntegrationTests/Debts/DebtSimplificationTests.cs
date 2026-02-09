@@ -32,6 +32,10 @@ namespace Expense.IntegrationTests.Debts
             var tokenA = await AuthenticateAsync("userA@test.com", "Password123!");
             var tokenB = await AuthenticateAsync("userB@test.com", "Password123!");
             var tokenC = await AuthenticateAsync("userC@test.com", "Password123!");
+
+            var userAId = await GetUserIdFromTokenAsync(tokenA);
+            var userBId = await GetUserIdFromTokenAsync(tokenB);
+            var userCId = await GetUserIdFromTokenAsync(tokenC);
             
             // 2. Create Group (User A)
             var group = await CreateGroupAsync(tokenA, "Debt Test Group");
@@ -45,10 +49,10 @@ namespace Expense.IntegrationTests.Debts
 
             // 5. Create Expenses
             // B pays 100 for A (A owes B 100)
-            await CreateExpenseAsync(tokenB, group.Id, "B pays for A", 100, "USD", category.Id, new[] { "userA@test.com" });
+            await CreateExpenseAsync(tokenB, group.Id, "B pays for A", 100, "USD", category.Id, new[] { userAId });
             
             // C pays 100 for B (B owes C 100)
-            await CreateExpenseAsync(tokenC, group.Id, "C pays for B", 100, "USD", category.Id, new[] { "userB@test.com" });
+            await CreateExpenseAsync(tokenC, group.Id, "C pays for B", 100, "USD", category.Id, new[] { userBId });
 
             // 6. Get Simplified Debts (User A checks)
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenA);
@@ -68,20 +72,19 @@ namespace Expense.IntegrationTests.Debts
             
             var transfer = groupDto.Transfers.First();
             // Expected: A owes C 100
-            var userAId = await GetUserIdAsync("userA@test.com");
-            var userCId = await GetUserIdAsync("userC@test.com");
-            
+            // Expected: A owes C 100
             transfer.FromUserId.Should().Be(userAId);
             transfer.ToUserId.Should().Be(userCId);
             transfer.Amount.Should().Be(100);
         }
 
-        private async Task<string> GetUserIdAsync(string email)
+        private async Task<string> GetUserIdFromTokenAsync(string token)
         {
-            using var scope = _factory.Services.CreateScope();
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var user = await userManager.FindByEmailAsync(email);
-            return user?.Id.ToString() ?? string.Empty;
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _client.GetAsync("/api/auth/me");
+            response.EnsureSuccessStatusCode();
+            var payload = await response.Content.ReadFromJsonAsync<APIResponse<System.Text.Json.JsonElement>>();
+            return payload!.Data.GetProperty("userId").GetString() ?? string.Empty;
         }
 
         private async Task<GroupDto> CreateGroupAsync(string token, string name)
@@ -109,19 +112,18 @@ namespace Expense.IntegrationTests.Debts
             return result!.Data!;
         }
 
-        private async Task CreateExpenseAsync(string token, Guid groupId, string description, decimal amount, string currency, Guid categoryId, string[] splitEmails)
+        private async Task CreateExpenseAsync(string token, Guid groupId, string description, decimal amount, string currency, Guid categoryId, string[] splitUserIds)
         {
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             
             var splits = new List<ExpenseSplitDto>();
             // If multiple splits, assume equal split for simplicity in this test helper, OR full amount if single split
             // In the test case "B pays for A", A is the only split, so A takes full amount.
-            var splitAmount = amount / splitEmails.Length; 
+            var splitAmount = amount / splitUserIds.Length; 
 
-            foreach (var email in splitEmails)
+            foreach (var userId in splitUserIds)
             {
-                var uid = await GetUserIdAsync(email);
-                splits.Add(new ExpenseSplitDto { UserId = uid, Amount = splitAmount });
+                splits.Add(new ExpenseSplitDto { UserId = userId, Amount = splitAmount });
             }
 
             var dto = new CreateExpenseDto

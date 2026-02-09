@@ -22,6 +22,14 @@ namespace Expense.IntegrationTests.Helpers
 
         protected async Task<string> AuthenticateAsync(string email = "test@example.com", string password = "Password123!")
         {
+            // Ensure unique emails per test run to avoid duplicate identity records
+            // in the shared in-memory database used by integration tests.
+            if (email.Contains("@") && !email.Contains("+"))
+            {
+                var parts = email.Split('@');
+                email = $"{parts[0]}+{Guid.NewGuid():N}@{parts[1]}";
+            }
+
             // Register first
             await _client.PostAsJsonAsync("/api/auth/register", new RegisterDto 
             { 

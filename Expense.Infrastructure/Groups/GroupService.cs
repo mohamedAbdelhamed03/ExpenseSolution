@@ -11,6 +11,10 @@ using Expense.Core.DTOs.Groups;
 using Expense.Core.DTOs.Notifications;
 using FluentValidation;
 
+using Expense.Core.Domain.IdentityEntities;
+using Microsoft.AspNetCore.Identity;
+using Expense.Core.Common.Exceptions;
+
 namespace Expense.Infrastructure.Groups
 {
     public class GroupService : IGroupService
@@ -19,17 +23,20 @@ namespace Expense.Infrastructure.Groups
         private readonly IActivityLogService _activityLogService;
         private readonly IRealtimeNotifier _notifier;
         private readonly IValidator<UpdateGroupMemberRolePatchDto> _patchValidator;
+        private readonly UserManager<ApplicationUser> _userManager;
         
         public GroupService(
             IUnitOfWork unitOfWork, 
             IActivityLogService activityLogService,
             IRealtimeNotifier notifier,
-            IValidator<UpdateGroupMemberRolePatchDto> patchValidator)
+            IValidator<UpdateGroupMemberRolePatchDto> patchValidator,
+            UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
             _notifier = notifier;
             _patchValidator = patchValidator;
+            _userManager = userManager;
         }
 
         public async Task<GroupDto> CreateGroupAsync(string creatorUserId, CreateGroupDto dto, CancellationToken cancellationToken)
@@ -122,6 +129,49 @@ namespace Expense.Infrastructure.Groups
             await _unitOfWork.SaveAsync(cancellationToken);
             
             await NotifyGroupMembersAsync(group.Id, userId, "Member_Joined", new { UserId = userId }, cancellationToken);
+
+            return true;
+        }
+
+        public async Task<bool> AddMemberByEmailAsync(Guid groupId, string requesterUserId, AddGroupMemberDto dto, CancellationToken cancellationToken)
+        {
+            var isRequesterMember = await _unitOfWork.Groups.IsMemberAsync(groupId, requesterUserId, cancellationToken);
+            if (!isRequesterMember) throw new GroupAccessDeniedException("Group_NotMember");
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                throw new NotFoundException("User_NotFound"); 
+            }
+
+            var isTargetMember = await _unitOfWork.Groups.IsMemberAsync(groupId, user.Id.ToString(), cancellationToken);
+            if (isTargetMember)
+            {
+                throw new BusinessException("Group_UserAlreadyMember");
+            }
+
+            var member = new GroupMember
+            {
+                GroupId = groupId,
+                UserId = user.Id.ToString(),
+                Role = GroupRole.Member
+            };
+
+            _unitOfWork.Groups.AddMember(member);
+            
+            await _activityLogService.LogActivityAsync(groupId, requesterUserId, ActivityType.Updated, EntityType.Group, groupId.ToString(), $"Added user {user.Email} to group", cancellationToken);
+            
+            await _unitOfWork.SaveAsync(cancellationToken);
+
+            await NotifyGroupMembersAsync(groupId, requesterUserId, "Member_Added", new { UserId = user.Id, Email = user.Email }, cancellationToken);
+            
+            await _notifier.NotifyUserAsync(user.Id.ToString(), new NotificationMessage 
+            { 
+                Type = "Group_Added", 
+                GroupId = groupId, 
+                ActorUserId = requesterUserId,
+                Payload = new { GroupId = groupId } 
+            }, cancellationToken);
 
             return true;
         }

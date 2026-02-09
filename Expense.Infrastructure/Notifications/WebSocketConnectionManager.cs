@@ -18,6 +18,7 @@ namespace Expense.Infrastructure.Notifications
     public class WebSocketConnectionManager : IWebSocketConnectionManager
     {
         private readonly ConcurrentDictionary<string, List<WebSocket>> _sockets = new();
+        private const int MaxConnectionsPerUser = 5;
 
         public void AddSocket(string userId, WebSocket socket)
         {
@@ -27,10 +28,31 @@ namespace Expense.Infrastructure.Notifications
                 {
                     lock (list)
                     {
+                        if (list.Count >= MaxConnectionsPerUser)
+                        {
+                            // Remove oldest connection to make room
+                            var oldest = list[0];
+                            list.RemoveAt(0);
+                            // We should close it, but we can't await here easily inside lock/AddOrUpdate
+                            // Best effort close (fire and forget)
+                            _ = CloseSocketAsync(oldest);
+                        }
                         list.Add(socket);
                     }
                     return list;
                 });
+        }
+
+        private async Task CloseSocketAsync(WebSocket socket)
+        {
+            if (socket.State != WebSocketState.Closed && socket.State != WebSocketState.Aborted)
+            {
+                try
+                {
+                    await socket.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Connection limit exceeded", CancellationToken.None);
+                }
+                catch { }
+            }
         }
 
         public async Task RemoveSocketAsync(string userId, WebSocket socket)
