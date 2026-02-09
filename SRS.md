@@ -6,7 +6,7 @@
 This document defines the requirements for the shared expenses backend system and serves as the authoritative specification for scope, behavior, and constraints.
 
 ### 1.2 Scope
-The system provides backend services for shared expense management in groups, including authentication, group membership, expense tracking, balances, settlements, currency handling, and activity logging.
+The system provides backend services for shared expense management in groups, including authentication, group membership, expense tracking, balances, settlements, currency handling, insights, debt simplification, notifications, and activity logging.
 
 ### 1.3 Definitions and Abbreviations
 - `EGP`: Egyptian Pound
@@ -19,14 +19,14 @@ The system provides backend services for shared expense management in groups, in
 ## 2. System Overview
 
 ### 2.1 System Description
-A multi-tenant backend system where authenticated users can create or join groups, record expenses with equal or custom splits, calculate balances, and track settlements and audit logs.
+A multi-tenant backend system where authenticated users can create or join groups, record expenses with equal or custom splits, calculate balances, track settlements, view insights, and receive notifications.
 
 ### 2.2 High-Level Architecture Overview
 Clean Architecture with layered separation:
 - API layer for controllers and authorization.
 - Application layer for use-case orchestration and validation.
 - Domain layer for entities and business rules.
-- Infrastructure layer for persistence, repositories, and external services (JWT, EF Core).
+- Infrastructure layer for persistence, repositories, and external services.
 
 ## 3. Functional Requirements
 
@@ -49,6 +49,7 @@ Clean Architecture with layered separation:
 1. Members can create, update, delete, and list expenses in their groups.
 2. Expenses include payer, amount, description, date, category, currency, and optional exchange-rate snapshot.
 3. Categories used must belong to the group.
+4. Partial updates are supported for selected fields (description, category, date).
 
 ### 3.5 Split Rules and Validation
 1. Equal split distributes expense amount across all group members, with rounding tolerance.
@@ -79,10 +80,20 @@ Clean Architecture with layered separation:
 2. Simplification is calculated dynamically based on current balances.
 3. Simplification respects currency boundaries (debts in different currencies are not merged).
 
+### 3.11 Insights & Analytics
+1. Users can view total spending and category breakdowns for a group.
+2. Insights support period filters (month, year, all).
+3. Aggregations are grouped by currency and do not mix currencies.
+4. Aggregations respect stored exchange-rate snapshots.
+
+### 3.12 Notifications
+1. Notifications are persisted for auditing and later viewing.
+2. Real-time delivery is best-effort and does not affect core flows.
+
 ## 4. Non‑Functional Requirements
 
 ### 4.1 Performance
-1. Read-heavy balance queries are optimized with proper indexing.
+1. Read-heavy balance and insights queries are optimized with proper indexing.
 2. Standard list endpoints respond within normal API latencies under expected load.
 
 ### 4.2 Security
@@ -92,6 +103,7 @@ Clean Architecture with layered separation:
 ### 4.3 Reliability & Transactional Guarantees
 1. Write operations are transactional.
 2. Activity logs are persisted in the same unit of work.
+3. Notification persistence is performed before any real-time delivery.
 
 ### 4.4 Maintainability
 1. Clean Architecture boundaries are preserved.
@@ -119,8 +131,8 @@ Clean Architecture with layered separation:
 2. Non‑EGP currency requires an exchange rate snapshot.
 
 ### 5.5 Debt Simplification Rules
-1. Simplification must preserve each user's net balance (total owed vs total owing) within each currency.
-2. Simplification ignores balances within a small tolerance (e.g., < 0.01) to avoid micro-transactions.
+1. Simplification must preserve each user's net balance within each currency.
+2. Simplification ignores balances within a small tolerance to avoid micro-transactions.
 3. The generated plan is read-only and does not automatically execute settlements.
 
 ## 6. Assumptions & Constraints

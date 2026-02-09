@@ -86,29 +86,6 @@
 ### POST /api/groups
 - Description: Create a group
 - Auth required: Yes
-- Request body:
-```json
-{
-  "name": "Weekend Trip"
-}
-```
-- Success response:
-```json
-{
-  "success": true,
-  "message": "Group created successfully",
-  "data": {
-    "id": "c1a5b9de-3c6d-4f5b-8b1d-9a4d2fbb2a10",
-    "name": "Weekend Trip",
-    "inviteCode": "a1b2c3d4",
-    "members": [
-      {"userId": "b5f5d9b8-0c7d-4e1d-9f28-5bfa2f5ed0a1", "role": "Admin"}
-    ]
-  },
-  "errors": [],
-  "statusCode": 200
-}
-```
 
 ### GET /api/groups
 - Description: List groups for current user
@@ -127,12 +104,12 @@
 - Auth required: Yes
 
 ### PUT /api/groups/{groupId}/members/{userId}/role
-- Description: Update member role
+- Description: Update member role (full update)
 - Auth required: Yes
-- Request body:
-```json
-{ "role": "Admin" }
-```
+
+### PATCH /api/groups/{groupId}/members/{userId}/role
+- Description: Update member role (partial)
+- Auth required: Yes
 
 ### DELETE /api/groups/{groupId}/members/{userId}
 - Description: Remove member
@@ -168,7 +145,11 @@
 - Auth required: Yes
 
 ### PUT /api/expenses/{expenseId}
-- Description: Update expense
+- Description: Update expense (full update)
+- Auth required: Yes
+
+### PATCH /api/expenses/{expenseId}
+- Description: Update expense (partial)
 - Auth required: Yes
 
 ### DELETE /api/expenses/{expenseId}
@@ -186,16 +167,6 @@
 ### POST /api/groups/{groupId}/settlements
 - Description: Create settlement (over‑settlement blocked)
 - Auth required: Yes
-- Request body:
-```json
-{
-  "payeeUserId": "u1",
-  "amount": 80.00,
-  "currency": "EGP",
-  "exchangeRate": null,
-  "settlementDate": "2026-02-08T12:30:00Z"
-}
-```
 
 ### GET /api/groups/{groupId}/settlements
 - Description: List settlements for group
@@ -206,28 +177,13 @@
 ### GET /api/groups/{groupId}/debts/simplified
 - Description: Get simplified debt graph (minimized transactions) to settle up efficiently.
 - Auth required: Yes
-- Success response:
-```json
-{
-  "success": true,
-  "message": null,
-  "data": [
-    {
-      "currency": "USD",
-      "transfers": [
-        {
-          "fromUserId": "u1",
-          "toUserId": "u2",
-          "amount": 50.00,
-          "currency": "USD"
-        }
-      ]
-    }
-  ],
-  "errors": [],
-  "statusCode": 200
-}
-```
+
+## Insights
+
+### GET /api/groups/{groupId}/insights
+- Description: Get expense insights for a group (totals, category breakdown, percentages).
+- Auth required: Yes
+- Query params: `period=month|year|all`, `date=YYYY-MM|YYYY`
 
 ## Categories
 
@@ -240,7 +196,11 @@
 - Auth required: Yes
 
 ### PUT /api/categories/{categoryId}
-- Description: Update category (admin only)
+- Description: Update category (full update, admin only)
+- Auth required: Yes
+
+### PATCH /api/categories/{categoryId}
+- Description: Update category (partial, admin only)
 - Auth required: Yes
 
 ### DELETE /api/categories/{categoryId}
@@ -259,39 +219,18 @@
 ### GET /api/notifications/unread
 - Description: Get unread notifications for the current user
 - Auth required: Yes
-- Success response:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "uuid",
-      "type": "Expense_Created",
-      "payload": "json_string",
-      "isRead": false,
-      "createdAt": "2026-02-08T12:00:00Z"
-    }
-  ]
-}
-```
 
 ### POST /api/notifications/mark-read
 - Description: Mark multiple notifications as read
 - Auth required: Yes
-- Request body:
-```json
-{
-  "notificationIds": ["uuid1", "uuid2"]
-}
-```
 
 ### POST /api/notifications/{id}/read
 - Description: Mark a single notification as read
 - Auth required: Yes
 
 ## Realtime
-### WebSocket /ws
-- Description: Realtime notification stream
-- Query params: `token=<access_token>`
-- Protocol: JSON messages
 
+### WebSocket /ws/notifications
+- Description: Realtime notification stream
+- Query params: `access_token=<JWT>`
+- Protocol: JSON messages
