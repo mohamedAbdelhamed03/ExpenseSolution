@@ -6,6 +6,7 @@ using Expense.Core.Domain.IdentityEntities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Expense.Core.Domain.Enums;
 
 namespace Expense.API.Controllers
 {

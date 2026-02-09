@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
 using System.Text;
+using Expense.Core.Domain.Enums;
 
 namespace Expense.Infrastructure.Authentication.Social
 {

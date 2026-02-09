@@ -1,4 +1,5 @@
 using Expense.Core.Abstractions.Authentication;
+using Expense.Core.Domain.Enums;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;
 using Google.Apis.Auth;

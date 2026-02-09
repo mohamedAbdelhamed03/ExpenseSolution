@@ -1,4 +1,4 @@
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Core.Domain.Enums;
 using Expense.Core.DTOs.Auth;
 
 namespace Expense.Core.Abstractions.Authentication

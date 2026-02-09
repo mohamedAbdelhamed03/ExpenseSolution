@@ -1,3 +1,4 @@
+using Expense.Core.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace Expense.Core.Domain.IdentityEntities

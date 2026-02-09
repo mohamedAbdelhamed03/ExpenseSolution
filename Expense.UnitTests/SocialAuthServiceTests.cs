@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Expense.Core.Abstractions.Authentication;
 using Expense.Core.Abstractions.Persistence;
 using Expense.Core.Domain.Entities;
+using Expense.Core.Domain.Enums;
 using Expense.Core.Domain.IdentityEntities;
 using Expense.Core.DTOs.Auth;
 using Expense.Infrastructure.Authentication.Social;

@@ -1,4 +1,4 @@
-namespace Expense.Core.Domain.IdentityEntities
+namespace Expense.Core.Domain.Enums
 {
     public enum AuthProvider
     {
