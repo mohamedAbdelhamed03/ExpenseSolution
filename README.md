@@ -21,6 +21,9 @@ We use Service + Repository rather than full CQRS to keep the design pragmatic w
 - Settlement Rules: Settlements are validated for membership, positive amount, and over‑settlement protection based on debtor balance.
 - Debt Simplification: Minimizes the number of transactions needed to settle up using a greedy algorithm. Calculates simplified transfers per currency without altering net balances.
 - Currency Handling: Default currency is `EGP`. Non‑EGP expenses require an exchange‑rate snapshot that is persisted and treated as immutable.
+- Personal Expenses: Private expense tracking for individual users, isolated from groups but integrated into the unified feed.
+- Unified Home Feed: Aggregates group expenses, settlements, and personal expenses into a single chronological timeline with directionality (In/Out/Neutral).
+- Real-time Notifications: Delivers instant updates to online users via WebSockets for critical events (Expense Added, Settlement Created, etc.).
 
 ## Data Consistency & Safety
 - Transactions and Unit of Work: All write operations are coordinated through a unit of work to ensure consistency.
@@ -47,7 +50,8 @@ The system includes unit and integration tests across core flows:
 - ASP.NET Core Web API
 - C#
 - EF Core + SQL Server
-- JWT Authentication
+- JWT Authentication + Social Auth (Google/Facebook)
+- Native WebSockets (Real-time)
 - FluentValidation
 - Clean Architecture
 - Service + Repository pattern
