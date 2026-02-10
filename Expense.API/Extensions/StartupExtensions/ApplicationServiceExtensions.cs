@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Infrastructure.Identity;
 using Expense.Core.Features.Common;
 using Expense.Core.Features.DependencyInjection;
 using FluentValidation.AspNetCore;
@@ -37,6 +37,9 @@ using Expense.Infrastructure.Notifications;
 using Expense.Core.Application.Notifications;
 using Expense.Core.Application.Insights;
 using Expense.Infrastructure.Insights;
+using Expense.Core.Application.Home;
+using Expense.Infrastructure.Home;
+using Expense.Core.Application.Services;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -188,6 +191,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISettlementService, SettlementService>();
         services.AddScoped<IDebtSimplificationService, DebtSimplificationService>();
         services.AddScoped<IInsightsService, InsightsService>();
+        services.AddScoped<IHomeFeedService, HomeFeedService>();
+        services.AddScoped<IPersonalExpenseService, PersonalExpenseService>();
         
         // Notifications
         services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();

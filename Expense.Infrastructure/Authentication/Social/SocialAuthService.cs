@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Expense.Core.Application.Authentication;
 using Expense.Core.Application.Persistence;
 using Expense.Core.Domain.Entities;
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Infrastructure.Identity;
 using Expense.Core.DTOs.Auth;
 using Expense.Core.Common.Exceptions;
 using Microsoft.AspNetCore.Identity;

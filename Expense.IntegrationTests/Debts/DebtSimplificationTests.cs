@@ -9,7 +9,7 @@ using Expense.Core.DTOs.Expenses;
 using Expense.Core.DTOs.Groups;
 using Expense.Core.DTOs.Categories;
 using Expense.Core.DTOs.Shared;
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Infrastructure.Identity;
 using Expense.IntegrationTests.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;

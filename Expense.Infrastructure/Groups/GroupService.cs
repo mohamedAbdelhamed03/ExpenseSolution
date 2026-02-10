@@ -11,7 +11,7 @@ using Expense.Core.DTOs.Groups;
 using Expense.Core.DTOs.Notifications;
 using FluentValidation;
 
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Expense.Core.Common.Exceptions;
 

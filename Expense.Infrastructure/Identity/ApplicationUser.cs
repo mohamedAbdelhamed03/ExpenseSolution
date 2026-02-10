@@ -1,7 +1,7 @@
 using Expense.Core.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 
-namespace Expense.Core.Domain.IdentityEntities
+namespace Expense.Infrastructure.Identity
 {
     public class ApplicationUser : IdentityUser<Guid>
     {

@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using Expense.Core.Application.Authentication;
 using Expense.Core.Domain.Enums;
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Infrastructure.Identity;
 using Expense.Core.DTOs.Auth;
 using Newtonsoft.Json;
 

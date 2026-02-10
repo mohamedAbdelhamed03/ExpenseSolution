@@ -2,7 +2,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Expense.Core.Domain.Entities;
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Infrastructure.Identity;
 using Expense.Core.DTOs.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;

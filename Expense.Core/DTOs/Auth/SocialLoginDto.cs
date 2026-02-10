@@ -1,5 +1,4 @@
 using Expense.Core.Domain.Enums;
-using Expense.Core.Domain.IdentityEntities;
 
 namespace Expense.Core.DTOs.Auth
 {

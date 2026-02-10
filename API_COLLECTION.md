@@ -81,6 +81,27 @@
 ```
 - Error responses: 401 (invalid credentials)
 
+### POST /api/auth/social-login
+- Description: Login or register using a social provider (Google/Facebook)
+- Auth required: No
+- Request body:
+```json
+{
+  "token": "google_or_facebook_token",
+  "provider": "Google" 
+}
+```
+- Success response: Same as Login
+- Error responses: 400 (Invalid token or provider)
+
+## Home Feed
+
+### GET /api/home
+- Description: Get unified feed of expenses, settlements, and personal expenses.
+- Auth required: Yes
+- Query params: `page` (default 1), `pageSize` (default 10)
+- Response includes `HomeFeedItemDto` with `Direction` (In/Out/Neutral).
+
 ## Groups
 
 ### POST /api/groups
@@ -154,6 +175,37 @@
 
 ### DELETE /api/expenses/{expenseId}
 - Description: Delete expense
+- Auth required: Yes
+
+## Personal Expenses
+
+### POST /api/personal-expenses
+- Description: Create a personal expense
+- Auth required: Yes
+- Request body:
+```json
+{
+  "amount": 50.00,
+  "currency": "USD",
+  "date": "2026-02-10T12:00:00Z",
+  "description": "Coffee"
+}
+```
+
+### GET /api/personal-expenses
+- Description: List personal expenses
+- Auth required: Yes
+
+### GET /api/personal-expenses/{id}
+- Description: Get single personal expense
+- Auth required: Yes
+
+### PUT /api/personal-expenses/{id}
+- Description: Update personal expense
+- Auth required: Yes
+
+### DELETE /api/personal-expenses/{id}
+- Description: Delete personal expense
 - Auth required: Yes
 
 ## Balances

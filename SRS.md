@@ -6,7 +6,7 @@
 This document defines the requirements for the shared expenses backend system and serves as the authoritative specification for scope, behavior, and constraints.
 
 ### 1.2 Scope
-The system provides backend services for shared expense management in groups, including authentication, group membership, expense tracking, balances, settlements, currency handling, insights, debt simplification, notifications, and activity logging.
+The system provides backend services for shared expense management in groups, including authentication (standard & social), group membership, expense tracking (shared & personal), balances, settlements, currency handling, insights, debt simplification, notifications, and activity logging.
 
 ### 1.3 Definitions and Abbreviations
 - `EGP`: Egyptian Pound
@@ -32,8 +32,9 @@ Clean Architecture with layered separation:
 
 ### 3.1 Authentication & Authorization
 1. Users can register and log in using JWT-based authentication.
-2. All protected endpoints require a valid JWT.
-3. Role-based access applies to group administration operations.
+2. Users can authenticate via social providers (Google, Facebook).
+3. All protected endpoints require a valid JWT.
+4. Role-based access applies to group administration operations.
 
 ### 3.2 User Management
 1. Users can retrieve their profile information using authenticated context.
@@ -88,7 +89,18 @@ Clean Architecture with layered separation:
 
 ### 3.12 Notifications
 1. Notifications are persisted for auditing and later viewing.
-2. Real-time delivery is best-effort and does not affect core flows.
+2. Real-time delivery is handled via WebSockets to online users.
+3. System ensures delivery reliability by persisting before broadcasting.
+
+### 3.13 Personal Expenses
+1. Users can record private expenses not shared with any group.
+2. Personal expenses have no splits and affect no balances.
+3. Only the creating user can view or edit their personal expenses.
+
+### 3.14 Home Feed
+1. Users can view a unified feed of all relevant activities (Group Expenses, Settlements, Personal Expenses).
+2. The feed supports pagination and filtering.
+3. Feed items include directionality (In/Out/Neutral) to indicate financial impact on the user.
 
 ## 4. Non‑Functional Requirements
 

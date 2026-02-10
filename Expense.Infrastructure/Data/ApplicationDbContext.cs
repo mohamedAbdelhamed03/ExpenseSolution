@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Infrastructure.Identity;
 using Expense.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ExpenseEntity = Expense.Core.Domain.Entities.Expense;
@@ -22,6 +22,7 @@ namespace Expense.Infrastructure.Data
 		public DbSet<ActivityLog> ActivityLogs { get; set; }
 		public DbSet<Settlement> Settlements { get; set; }
 		public DbSet<Notification> Notifications { get; set; }
+		public DbSet<PersonalExpense> PersonalExpenses { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -48,6 +49,18 @@ namespace Expense.Infrastructure.Data
 				entity.Property(e => e.CreatedAt).IsRequired();
 				entity.HasIndex(e => e.UserId);
 				entity.HasIndex(e => new { e.UserId, e.IsRead });
+			});
+
+			modelBuilder.Entity<PersonalExpense>(entity =>
+			{
+				entity.HasKey(e => e.Id);
+				entity.Property(e => e.UserId).IsRequired();
+				entity.Property(e => e.Amount).IsRequired();
+				entity.Property(e => e.Currency).IsRequired().HasMaxLength(3).HasDefaultValue("EGP");
+				entity.Property(e => e.Date).IsRequired();
+				entity.Property(e => e.CreatedAt).IsRequired();
+				entity.HasIndex(e => e.UserId);
+				entity.ToTable(t => t.HasCheckConstraint("CK_PersonalExpense_Amount_Positive", "[Amount] > 0"));
 			});
 
             modelBuilder.Entity<ApplicationUser>(entity =>

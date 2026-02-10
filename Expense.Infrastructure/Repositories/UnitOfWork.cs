@@ -19,6 +19,8 @@ namespace Expense.Infrastructure.Repositories
         public IExpenseCategoryRepository Categories { get; private set; }
         public IActivityLogRepository ActivityLogs { get; private set; }
         public INotificationRepository Notifications { get; private set; }
+        public IHomeFeedRepository HomeFeed { get; private set; }
+        public IPersonalExpenseRepository PersonalExpenses { get; private set; }
 
 		public UnitOfWork(ApplicationDbContext db)
 		{
@@ -30,6 +32,8 @@ namespace Expense.Infrastructure.Repositories
             Categories = new ExpenseCategoryRepository(_db);
             ActivityLogs = new ActivityLogRepository(_db);
             Notifications = new NotificationRepository(_db);
+            HomeFeed = new HomeFeedRepository(_db);
+            PersonalExpenses = new PersonalExpenseRepository(_db);
 		}
 
 		public IRepository<T> Repository<T>() where T : class

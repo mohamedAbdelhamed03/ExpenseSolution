@@ -16,6 +16,8 @@ namespace Expense.Core.Application.Persistence
         IExpenseCategoryRepository Categories { get; }
         IActivityLogRepository ActivityLogs { get; }
         INotificationRepository Notifications { get; }
+        IHomeFeedRepository HomeFeed { get; }
+        IPersonalExpenseRepository PersonalExpenses { get; }
 		Task<int> SaveAsync(CancellationToken cancellationToken = default);
 	}
 }

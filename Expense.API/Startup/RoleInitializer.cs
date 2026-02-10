@@ -1,4 +1,4 @@
-using Expense.Core.Domain.IdentityEntities;
+using Expense.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace Expense.API.Startup

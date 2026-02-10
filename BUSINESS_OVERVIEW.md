@@ -33,7 +33,10 @@ A group represents a set of people sharing expenses for a shared purpose (trip, 
 An expense is a recorded cost paid by one person on behalf of the group. Any group member can add expenses. Costs can be split:
 - **Equally** across all members
 - **Custom amounts** when shares differ
-Categories help organize spending (e.g., food, transport, utilities) to make reporting clearer.
+- Categories help organize spending (e.g., food, transport, utilities) to make reporting clearer.
+
+### Personal Expenses
+Users can also track their own private spending that is not shared with any group. This allows the platform to serve as a complete financial tracker, combining both shared and personal costs in one place. Only the user who created the personal expense can view it.
 
 ### Balances
 A balance shows each person’s net position:
@@ -47,28 +50,35 @@ Settlements represent paying someone back. The system guides users to settle cor
 ## 4. Debt Simplification (User Benefit)
 To reduce the number of payments, the system simplifies debts automatically. For example, if Person A owes Person B, and Person B owes Person C, the system suggests that Person A pays Person C directly. This reduces unnecessary steps and makes settling faster and easier.
 
-## 5. Insights & Analytics
+## 5. Unified Activity Feed
+The Home Feed provides a single, chronological view of all financial activities relevant to the user. It aggregates:
+- **Group Expenses**: Where the user paid or is involved in the split.
+- **Settlements**: Payments made or received by the user.
+- **Personal Expenses**: Private spending tracked by the user.
+This unified view helps users stay on top of their latest financial interactions without navigating through multiple groups.
+
+## 6. Insights & Analytics
 Users can view spending summaries to understand behavior and trends:
 - Total spending over a period
 - Breakdown by category
 - Monthly and yearly views
 These insights help users make better decisions, plan budgets, and identify where money is being spent most.
 
-## 6. Notifications
+## 7. Notifications
 Users receive notifications when important actions happen, such as:
 - A new expense is added
 - An expense is updated or removed
 - A settlement is recorded
-Notifications appear in real time when users are online and are also available later in the app so nothing is missed. This improves collaboration and reduces confusion.
+Notifications are delivered in **real-time** (via WebSockets) when users are online and are persisted so they can be viewed later. This ensures users never miss an update.
 
-## 7. Data Accuracy & Trust
+## 8. Data Accuracy & Trust
 The system is designed to be reliable and trustworthy:
 - All changes are recorded and traceable.
 - Balances always reflect the latest approved data.
 - If a user is offline, information is still available when they return.
 - Records can be reviewed anytime, which builds confidence and avoids disputes.
 
-## 8. Typical User Journey
+## 9. Typical User Journey
 1. A user creates a group for a trip.
 2. They invite friends to join.
 3. Members add expenses as they happen (meals, transport, lodging).
@@ -76,14 +86,14 @@ The system is designed to be reliable and trustworthy:
 5. Members settle debts based on suggested payments.
 6. They review insights to understand where the money went.
 
-## 9. Business Rules & Constraints
+## 10. Business Rules & Constraints
 - Only group members can view and add expenses.
 - Admins control member roles and removals.
 - Expenses must have valid splits that add up correctly.
 - Settlements cannot exceed what someone owes.
 - Historical entries are preserved for accountability.
 
-## 10. Non‑Goals
+## 11. Non‑Goals
 The system does not:
 - Process payments
 - Convert currencies
