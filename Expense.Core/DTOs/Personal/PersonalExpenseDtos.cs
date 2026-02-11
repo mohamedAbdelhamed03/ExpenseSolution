@@ -30,4 +30,22 @@ namespace Expense.Core.DTOs.Personal
         public string Description { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
+
+    public class UpdatePersonalExpenseDto : CreatePersonalExpenseDto
+    {
+    }
+
+    public class UpdatePersonalExpensePatchDto
+    {
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
+        public decimal? Amount { get; set; }
+
+        [StringLength(3)]
+        public string? Currency { get; set; }
+
+        public DateTime? Date { get; set; }
+
+        [StringLength(500)]
+        public string? Description { get; set; }
+    }
 }

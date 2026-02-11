@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  api:
+    image: expense-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=ExpenseDB;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;
+      - JwtSettings__Key=ThisIsMySecretKeyForJwtTokenGenerationAndItShouldBeAtLeast32CharactersLong
+      - JwtSettings__Issuer=ExpenseAPI
+      - JwtSettings__Audience=ExpenseUsers
+    depends_on:
+      - db
+    networks:
+      - expense-network
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Password123
+    ports:
+      - "1433:1433"
+    volumes:
+      - db-data:/var/opt/mssql
+    networks:
+      - expense-network
+
+networks:
+  expense-network:
+    driver: bridge
+
+volumes:
+  db-data:

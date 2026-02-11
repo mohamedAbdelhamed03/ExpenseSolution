@@ -201,8 +201,14 @@
 - Auth required: Yes
 
 ### PUT /api/personal-expenses/{id}
-- Description: Update personal expense
+- Description: Update personal expense (full update)
 - Auth required: Yes
+- Request body: Same as Create
+
+### PATCH /api/personal-expenses/{id}
+- Description: Update personal expense (partial)
+- Auth required: Yes
+- Request body: Nullable fields
 
 ### DELETE /api/personal-expenses/{id}
 - Description: Delete personal expense
