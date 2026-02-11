@@ -24,7 +24,7 @@ namespace Expense.API.Controllers
 
         [HttpGet]
         public async Task<ActionResult<APIResponse<IEnumerable<InsightsSummaryDto>>>> GetInsights(
-            [FromQuery] Guid groupId,
+            [FromRoute] Guid groupId,
             [FromQuery] string period = "month",
             [FromQuery] string date = "",
             [FromQuery] string scope = "group")
@@ -34,7 +34,7 @@ namespace Expense.API.Controllers
             return Ok(APIResponse<IEnumerable<InsightsSummaryDto>>.SuccessResponse(result));
         }
 
-        [HttpGet("home")]
+        [HttpGet("/api/insights/home")]
         public async Task<ActionResult<APIResponse<IEnumerable<InsightsSummaryDto>>>> GetHomeInsights(
             [FromQuery] string period = "month",
             [FromQuery] string date = "")
