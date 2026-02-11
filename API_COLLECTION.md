@@ -199,6 +199,21 @@
   "categoryId": "7f9f62d1-7c2a-4d8d-9c6f-0b2c4a8e9c11"
 }
 ```
+- Response:
+```json
+{
+  "id": "...",
+  "userId": "...",
+  "amount": 50.00,
+  "currency": "USD",
+  "date": "2026-02-10T12:00:00Z",
+  "description": "Coffee",
+  "categoryId": "7f9f62d1-7c2a-4d8d-9c6f-0b2c4a8e9c11",
+  "categoryName": "Food",
+  "categoryIcon": "🍔",
+  "createdAt": "..."
+}
+```
 
 ### GET /api/personal-expenses
 - Description: Get list of personal expenses
@@ -285,14 +300,14 @@
 ## Categories
 
 ### POST /api/groups/{groupId}/categories
-- Description: Create category (admin only)
-- Auth required: Yes
+- Description: Create a new category for a group.
+- Auth required: Yes (Group Admin)
 - Request body:
 ```json
 {
-  "name": "Transport",
-  "description": "Bus, Train, Flight",
-  "logoUrl": "https://example.com/transport.png"
+  "name": "Food",
+  "description": "Dining out and groceries",
+  "icon": "🍔"
 }
 ```
 
@@ -301,14 +316,14 @@
 - Auth required: Yes
 
 ### PUT /api/categories/{categoryId}
-- Description: Update category (full update, admin only)
-- Auth required: Yes
+- Description: Update a category.
+- Auth required: Yes (Group Admin)
 - Request body:
 ```json
 {
-  "name": "Transport Updated",
-  "description": "Bus, Train, Flight, Taxi",
-  "logoUrl": "https://example.com/transport_new.png"
+  "name": "Dining",
+  "description": "Restaurants only",
+  "icon": "🍽️"
 }
 ```
 

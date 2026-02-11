@@ -24,7 +24,7 @@ namespace Expense.Core.DTOs.Personal
         public string Description { get; set; } = string.Empty;
         public Guid? CategoryId { get; set; }
         public string? CategoryName { get; set; }
-        public string? CategoryLogoUrl { get; set; }
+        public string? CategoryIcon { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 

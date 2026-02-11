@@ -13,6 +13,12 @@ namespace Expense.Core.Features.Categories.Validators
 
             RuleFor(x => x.Description)
                 .MaximumLength(200).WithErrorCode("Category.Description.MaxLength");
+
+            RuleFor(x => x.Icon)
+                .Matches(@"^[\u00a9\u00ae\u2000-\u3300\ud83c\ud000-\udfff\ud83d\ud000-\udfff\ud83e\ud000-\udfff]+$")
+                .When(x => !string.IsNullOrEmpty(x.Icon))
+                .WithErrorCode("Category.Icon.Invalid")
+                .WithMessage("Icon must be a valid emoji");
         }
     }
 
@@ -26,6 +32,12 @@ namespace Expense.Core.Features.Categories.Validators
 
             RuleFor(x => x.Description)
                 .MaximumLength(200).WithErrorCode("Category.Description.MaxLength");
+
+            RuleFor(x => x.Icon)
+                .Matches(@"^[\u00a9\u00ae\u2000-\u3300\ud83c\ud000-\udfff\ud83d\ud000-\udfff\ud83e\ud000-\udfff]+$")
+                .When(x => !string.IsNullOrEmpty(x.Icon))
+                .WithErrorCode("Category.Icon.Invalid")
+                .WithMessage("Icon must be a valid emoji");
         }
     }
 

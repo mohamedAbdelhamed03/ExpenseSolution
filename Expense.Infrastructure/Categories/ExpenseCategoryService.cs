@@ -68,6 +68,7 @@ namespace Expense.Infrastructure.Categories
                 GroupId = groupId,
                 Name = dto.Name,
                 Description = dto.Description,
+                Icon = dto.Icon,
                 IsSystem = false,
                 CreatedAt = DateTime.UtcNow
             };
@@ -131,7 +132,7 @@ namespace Expense.Infrastructure.Categories
 
             category.Name = dto.Name;
             category.Description = dto.Description;
-            category.LogoUrl = dto.LogoUrl;
+            category.Icon = dto.Icon;
 
             _unitOfWork.Categories.Update(category);
 
@@ -187,9 +188,9 @@ namespace Expense.Infrastructure.Categories
                 changed = true;
             }
 
-            if (dto.LogoUrl != null && dto.LogoUrl != category.LogoUrl)
+            if (dto.Icon != null && dto.Icon != category.Icon)
             {
-                category.LogoUrl = dto.LogoUrl;
+                category.Icon = dto.Icon;
                 changed = true;
             }
 
@@ -251,7 +252,7 @@ namespace Expense.Infrastructure.Categories
                 UserId = category.UserId,
                 Name = category.Name,
                 Description = category.Description,
-                LogoUrl = category.LogoUrl,
+                Icon = category.Icon,
                 IsSystem = category.IsSystem,
                 CreatedAt = category.CreatedAt
             };

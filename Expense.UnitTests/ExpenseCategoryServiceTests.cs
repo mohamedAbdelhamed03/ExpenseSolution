@@ -49,7 +49,7 @@ namespace Expense.UnitTests
         }
 
         [Fact]
-        public async Task UpdateCategoryAsync_ShouldUpdateLogoUrl_WhenValid()
+        public async Task UpdateCategoryAsync_ShouldUpdateIcon_WhenValid()
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
@@ -61,7 +61,7 @@ namespace Expense.UnitTests
                 Id = categoryId,
                 GroupId = groupId,
                 Name = "Old Name",
-                LogoUrl = "http://old.com/logo.png"
+                Icon = "🍔"
             };
 
             var member = new GroupMember { UserId = userId, Role = GroupRole.Admin };
@@ -75,7 +75,7 @@ namespace Expense.UnitTests
             var dto = new UpdateExpenseCategoryDto
             {
                 Name = "New Name",
-                LogoUrl = "http://new.com/logo.png"
+                Icon = "🍕"
             };
 
             // Act
@@ -83,13 +83,13 @@ namespace Expense.UnitTests
 
             // Assert
             Assert.Equal("New Name", result.Name);
-            Assert.Equal("http://new.com/logo.png", result.LogoUrl);
+            Assert.Equal("🍕", result.Icon);
             _mockCategoryRepo.Verify(r => r.Update(category), Times.Once);
             _mockUnitOfWork.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public async Task UpdateCategoryPartialAsync_ShouldUpdateLogoUrl_WhenValid()
+        public async Task UpdateCategoryPartialAsync_ShouldUpdateIcon_WhenValid()
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
@@ -101,7 +101,7 @@ namespace Expense.UnitTests
                 Id = categoryId,
                 GroupId = groupId,
                 Name = "Old Name",
-                LogoUrl = "http://old.com/logo.png"
+                Icon = "🍔"
             };
 
             var member = new GroupMember { UserId = userId, Role = GroupRole.Admin };
@@ -114,7 +114,7 @@ namespace Expense.UnitTests
 
             var dto = new UpdateCategoryPatchDto
             {
-                LogoUrl = "http://new.com/logo.png"
+                Icon = "🍕"
             };
 
             // Act
@@ -122,7 +122,7 @@ namespace Expense.UnitTests
 
             // Assert
             Assert.Equal("Old Name", result.Name); // Should be unchanged
-            Assert.Equal("http://new.com/logo.png", result.LogoUrl);
+            Assert.Equal("🍕", result.Icon);
             _mockCategoryRepo.Verify(r => r.Update(category), Times.Once);
             _mockUnitOfWork.Verify(u => u.SaveAsync(It.IsAny<CancellationToken>()), Times.Once);
         }

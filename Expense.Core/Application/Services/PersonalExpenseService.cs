@@ -175,7 +175,7 @@ namespace Expense.Core.Application.Services
                 Description = entity.Description,
                 CategoryId = entity.CategoryId,
                 CategoryName = entity.Category?.Name,
-                CategoryLogoUrl = entity.Category?.LogoUrl,
+                CategoryIcon = entity.Category?.Icon,
                 CreatedAt = entity.CreatedAt
             };
         }

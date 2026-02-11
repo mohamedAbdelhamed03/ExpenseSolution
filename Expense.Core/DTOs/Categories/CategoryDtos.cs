@@ -9,7 +9,7 @@ namespace Expense.Core.DTOs.Categories
         public string? UserId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? LogoUrl { get; set; }
+        public string? Icon { get; set; }
         public bool IsSystem { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -18,13 +18,13 @@ namespace Expense.Core.DTOs.Categories
     {
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? LogoUrl { get; set; }
+        public string? Icon { get; set; }
     }
 
     public class UpdateExpenseCategoryDto
     {
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? LogoUrl { get; set; }
+        public string? Icon { get; set; }
     }
 }

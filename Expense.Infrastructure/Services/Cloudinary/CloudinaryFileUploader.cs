@@ -39,6 +39,10 @@ namespace Expense.Infrastructure.Services.Cloudinary
                 };
 
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams, cancellationToken);
+                if (uploadResult == null || uploadResult.SecureUrl == null)
+                {
+                    throw new Exception("Upload failed: No response from Cloudinary");
+                }
                 return uploadResult.SecureUrl.ToString();
             }
 
