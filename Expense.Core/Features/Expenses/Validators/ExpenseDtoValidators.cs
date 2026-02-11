@@ -83,8 +83,7 @@ namespace Expense.Core.Features.Expenses.Validators
         {
             RuleFor(x => x)
                 .Must(x => x.Description != null || x.CategoryId.HasValue || x.ExpenseDate.HasValue)
-                .WithErrorCode("Patch.NoFieldsProvided")
-                .WithMessage("At least one field must be provided for update");
+                .WithErrorCode("Patch.NoFieldsProvided");
 
             RuleFor(x => x.Description)
                 .NotEmpty().When(x => x.Description != null).WithErrorCode("Expense.Description.Required")

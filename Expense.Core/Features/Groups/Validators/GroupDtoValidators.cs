@@ -19,8 +19,7 @@ namespace Expense.Core.Features.Groups.Validators
         {
              RuleFor(x => x)
                 .Must(x => x.Role != null)
-                .WithErrorCode("Patch.NoFieldsProvided")
-                .WithMessage("At least one field must be provided for update");
+                .WithErrorCode("Patch.NoFieldsProvided");
 
             RuleFor(x => x.Role)
                 .NotEmpty().When(x => x.Role != null).WithErrorCode("Group.Role.Required")

@@ -139,4 +139,10 @@
   <data name="Group.Name.MaxLength" xml:space="preserve">
     <value>يجب ألا يتجاوز اسم المجموعة 100 حرف</value>
   </data>
+  <data name="Category.Icon.Invalid" xml:space="preserve">
+    <value>يجب أن يكون الرمز رمزًا تعبيريًا صالحًا</value>
+  </data>
+  <data name="Patch.NoFieldsProvided" xml:space="preserve">
+    <value>يجب توفير حقل واحد على الأقل للتحديث</value>
+  </data>
 </root>
