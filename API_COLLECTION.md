@@ -107,6 +107,13 @@
 ### POST /api/groups
 - Description: Create a group
 - Auth required: Yes
+- Request body:
+```json
+{
+  "name": "Trip to Paris",
+  "logoUrl": "https://example.com/logo.png"
+}
+```
 
 ### GET /api/groups
 - Description: List groups for current user
@@ -193,7 +200,7 @@
 ```
 
 ### GET /api/personal-expenses
-- Description: List personal expenses
+- Description: Get list of personal expenses
 - Auth required: Yes
 
 ### GET /api/personal-expenses/{id}
@@ -203,16 +210,42 @@
 ### PUT /api/personal-expenses/{id}
 - Description: Update personal expense (full update)
 - Auth required: Yes
-- Request body: Same as Create
 
 ### PATCH /api/personal-expenses/{id}
 - Description: Update personal expense (partial)
 - Auth required: Yes
-- Request body: Nullable fields
 
 ### DELETE /api/personal-expenses/{id}
 - Description: Delete personal expense
 - Auth required: Yes
+
+## Files
+
+### POST /api/files/upload
+- Description: Upload an image file (e.g. for group or category logo). Returns the public URL.
+- Auth required: Yes
+- Content-Type: multipart/form-data
+- Request body:
+  - `file`: (File, binary)
+- Success response:
+```json
+{
+  "url": "https://res.cloudinary.com/demo/image/upload/v1570979139/sample.jpg"
+}
+```
+- Error responses: 400 (empty file or invalid type)
+
+### GET /api/files/download
+- Description: Download a file by URL.
+- Auth required: Yes
+- Query params: `url` (Cloudinary URL)
+- Response: File attachment
+
+### GET /api/files/preview
+- Description: Preview a file by URL.
+- Auth required: Yes
+- Query params: `url` (Cloudinary URL)
+- Response: Inline file content
 
 ## Balances
 
@@ -248,6 +281,14 @@
 ### POST /api/groups/{groupId}/categories
 - Description: Create category (admin only)
 - Auth required: Yes
+- Request body:
+```json
+{
+  "name": "Transport",
+  "description": "Bus, Train, Flight",
+  "logoUrl": "https://example.com/transport.png"
+}
+```
 
 ### GET /api/groups/{groupId}/categories
 - Description: List categories for a group
@@ -256,10 +297,24 @@
 ### PUT /api/categories/{categoryId}
 - Description: Update category (full update, admin only)
 - Auth required: Yes
+- Request body:
+```json
+{
+  "name": "Transport Updated",
+  "description": "Bus, Train, Flight, Taxi",
+  "logoUrl": "https://example.com/transport_new.png"
+}
+```
 
 ### PATCH /api/categories/{categoryId}
 - Description: Update category (partial, admin only)
 - Auth required: Yes
+- Request body:
+```json
+{
+  "logoUrl": "https://example.com/transport_new.png"
+}
+```
 
 ### DELETE /api/categories/{categoryId}
 - Description: Delete category (admin only)

@@ -46,6 +46,7 @@ namespace Expense.Infrastructure.Groups
             {
                 Id = Guid.NewGuid(),
                 Name = dto.Name,
+                LogoUrl = dto.LogoUrl,
                 CreatedByUserId = creatorUserId,
                 InviteCode = inviteCode
             };
@@ -70,6 +71,7 @@ namespace Expense.Infrastructure.Groups
             {
                 Id = group.Id,
                 Name = group.Name,
+                LogoUrl = group.LogoUrl,
                 InviteCode = group.InviteCode,
                 Members = new[] 
                 { 
@@ -96,6 +98,7 @@ namespace Expense.Infrastructure.Groups
             {
                 Id = group.Id,
                 Name = group.Name,
+                LogoUrl = group.LogoUrl,
                 InviteCode = group.InviteCode,
                 Members = group.Members.Select(m => new GroupMemberDto
                 {

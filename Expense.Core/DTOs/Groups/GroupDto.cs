@@ -7,6 +7,7 @@ namespace Expense.Core.DTOs.Groups
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string? LogoUrl { get; set; }
         public string InviteCode { get; set; } = string.Empty;
         public IEnumerable<GroupMemberDto> Members { get; set; } = Array.Empty<GroupMemberDto>();
     }

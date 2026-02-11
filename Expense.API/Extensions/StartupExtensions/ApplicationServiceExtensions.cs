@@ -40,6 +40,8 @@ using Expense.Infrastructure.Insights;
 using Expense.Core.Application.Home;
 using Expense.Infrastructure.Home;
 using Expense.Core.Application.Services;
+using Expense.Infrastructure.Services.Cloudinary;
+using Expense.Core.Application.Common.Interfaces;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -197,6 +199,10 @@ public static class ApplicationServiceExtensions
         // Notifications
         services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();
         services.AddScoped<IRealtimeNotifier, NativeWebSocketNotifier>();
+
+        // Cloudinary
+        services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
+        services.AddScoped<IFileUploader, CloudinaryFileUploader>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

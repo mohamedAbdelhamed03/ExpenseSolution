@@ -125,6 +125,7 @@ namespace Expense.Infrastructure.Categories
 
             category.Name = dto.Name;
             category.Description = dto.Description;
+            category.LogoUrl = dto.LogoUrl;
 
             _unitOfWork.Categories.Update(category);
 
@@ -165,6 +166,18 @@ namespace Expense.Infrastructure.Categories
                     throw new BusinessException("Category_AlreadyExists");
                 }
                 category.Name = dto.Name;
+                changed = true;
+            }
+
+            if (dto.Description != null && dto.Description != category.Description)
+            {
+                category.Description = dto.Description;
+                changed = true;
+            }
+
+            if (dto.LogoUrl != null && dto.LogoUrl != category.LogoUrl)
+            {
+                category.LogoUrl = dto.LogoUrl;
                 changed = true;
             }
 
@@ -219,6 +232,7 @@ namespace Expense.Infrastructure.Categories
                 GroupId = category.GroupId,
                 Name = category.Name,
                 Description = category.Description,
+                LogoUrl = category.LogoUrl,
                 IsSystem = category.IsSystem,
                 CreatedAt = category.CreatedAt
             };
