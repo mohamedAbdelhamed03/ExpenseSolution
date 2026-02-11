@@ -3,6 +3,7 @@ using Expense.Core.Application.Services;
 using Expense.Core.Common.Exceptions;
 using Expense.Core.Domain.Entities;
 using Expense.Core.DTOs.Personal;
+using FluentValidation;
 using Moq;
 using System;
 using System.Linq.Expressions;
@@ -16,6 +17,9 @@ namespace Expense.UnitTests
     {
         private readonly Mock<IUnitOfWork> _mockUnitOfWork;
         private readonly Mock<IPersonalExpenseRepository> _mockRepo;
+        private readonly Mock<IValidator<CreatePersonalExpenseDto>> _mockCreateValidator;
+        private readonly Mock<IValidator<UpdatePersonalExpenseDto>> _mockUpdateValidator;
+        private readonly Mock<IValidator<UpdatePersonalExpensePatchDto>> _mockPatchValidator;
         private readonly PersonalExpenseService _service;
 
         public PersonalExpenseServiceTests()
@@ -23,7 +27,23 @@ namespace Expense.UnitTests
             _mockUnitOfWork = new Mock<IUnitOfWork>();
             _mockRepo = new Mock<IPersonalExpenseRepository>();
             _mockUnitOfWork.Setup(u => u.PersonalExpenses).Returns(_mockRepo.Object);
-            _service = new PersonalExpenseService(_mockUnitOfWork.Object);
+            
+            _mockCreateValidator = new Mock<IValidator<CreatePersonalExpenseDto>>();
+            _mockUpdateValidator = new Mock<IValidator<UpdatePersonalExpenseDto>>();
+            _mockPatchValidator = new Mock<IValidator<UpdatePersonalExpensePatchDto>>();
+
+            _mockCreateValidator.Setup(v => v.ValidateAsync(It.IsAny<CreatePersonalExpenseDto>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+            _mockUpdateValidator.Setup(v => v.ValidateAsync(It.IsAny<UpdatePersonalExpenseDto>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+            _mockPatchValidator.Setup(v => v.ValidateAsync(It.IsAny<UpdatePersonalExpensePatchDto>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+            _service = new PersonalExpenseService(
+                _mockUnitOfWork.Object,
+                _mockCreateValidator.Object,
+                _mockUpdateValidator.Object,
+                _mockPatchValidator.Object);
         }
 
         [Fact]

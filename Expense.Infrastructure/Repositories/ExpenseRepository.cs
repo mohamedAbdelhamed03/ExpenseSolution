@@ -33,7 +33,39 @@ namespace Expense.Infrastructure.Repositories
                 {
                     CategoryId = g.Key.CategoryId,
                     Currency = g.Key.Currency,
-                    TotalAmount = g.Sum(e => e.Amount * e.ExchangeRate) ?? 0m
+                    TotalAmount = g.Sum(e => e.Amount * (e.ExchangeRate ?? 1m))
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<CategoryStatistics>> GetMyInsightsByCategoryAsync(Guid groupId, string userId, DateTime startDate, DateTime endDate)
+        {
+            return await dbSet
+                .AsNoTracking()
+                .Where(e => e.GroupId == groupId && e.ExpenseDate >= startDate && e.ExpenseDate <= endDate)
+                .SelectMany(e => e.Splits.Where(s => s.UserId == userId), (e, s) => new { Expense = e, Split = s })
+                .GroupBy(x => new { x.Expense.CategoryId, x.Expense.Currency })
+                .Select(g => new CategoryStatistics
+                {
+                    CategoryId = g.Key.CategoryId,
+                    Currency = g.Key.Currency,
+                    TotalAmount = g.Sum(x => x.Split.Amount * (x.Expense.ExchangeRate ?? 1m))
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<CategoryStatistics>> GetUserExpensesByCategoryAsync(string userId, DateTime startDate, DateTime endDate)
+        {
+            return await dbSet
+                .AsNoTracking()
+                .Where(e => e.ExpenseDate >= startDate && e.ExpenseDate <= endDate)
+                .SelectMany(e => e.Splits.Where(s => s.UserId == userId), (e, s) => new { Expense = e, Split = s })
+                .GroupBy(x => new { x.Expense.CategoryId, x.Expense.Currency })
+                .Select(g => new CategoryStatistics
+                {
+                    CategoryId = g.Key.CategoryId,
+                    Currency = g.Key.Currency,
+                    TotalAmount = g.Sum(x => x.Split.Amount * (x.Expense.ExchangeRate ?? 1m))
                 })
                 .ToListAsync();
         }

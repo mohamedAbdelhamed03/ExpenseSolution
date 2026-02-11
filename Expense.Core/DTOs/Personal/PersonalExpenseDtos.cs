@@ -1,23 +1,17 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace Expense.Core.DTOs.Personal
 {
     public class CreatePersonalExpenseDto
     {
-        [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
         public decimal Amount { get; set; }
 
-        [Required]
-        [StringLength(3)]
         public string Currency { get; set; } = "EGP";
 
-        [Required]
         public DateTime Date { get; set; }
 
-        [StringLength(500)]
         public string Description { get; set; } = string.Empty;
+        public Guid? CategoryId { get; set; }
     }
 
     public class PersonalExpenseDto
@@ -28,6 +22,9 @@ namespace Expense.Core.DTOs.Personal
         public string Currency { get; set; } = string.Empty;
         public DateTime Date { get; set; }
         public string Description { get; set; } = string.Empty;
+        public Guid? CategoryId { get; set; }
+        public string? CategoryName { get; set; }
+        public string? CategoryLogoUrl { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
@@ -37,15 +34,14 @@ namespace Expense.Core.DTOs.Personal
 
     public class UpdatePersonalExpensePatchDto
     {
-        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
         public decimal? Amount { get; set; }
 
-        [StringLength(3)]
         public string? Currency { get; set; }
 
         public DateTime? Date { get; set; }
 
-        [StringLength(500)]
         public string? Description { get; set; }
+
+        public Guid? CategoryId { get; set; }
     }
 }

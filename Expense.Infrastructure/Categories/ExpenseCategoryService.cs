@@ -103,7 +103,13 @@ namespace Expense.Infrastructure.Categories
                 throw new NotFoundException("Category_NotFound");
             }
 
-            var member = await _unitOfWork.Groups.GetMemberAsync(category.GroupId, userId, cancellationToken);
+            // Ensure it is a group category
+            if (!category.GroupId.HasValue)
+            {
+                throw new NotFoundException("Category_NotFound");
+            }
+
+            var member = await _unitOfWork.Groups.GetMemberAsync(category.GroupId.Value, userId, cancellationToken);
             if (member == null)
             {
                  throw new GroupAccessDeniedException("Group_NotMember");
@@ -116,7 +122,7 @@ namespace Expense.Infrastructure.Categories
 
             if (category.Name != dto.Name)
             {
-                var existing = await _unitOfWork.Categories.GetByNameAsync(category.GroupId, dto.Name, cancellationToken);
+                var existing = await _unitOfWork.Categories.GetByNameAsync(category.GroupId.Value, dto.Name, cancellationToken);
                 if (existing != null)
                 {
                     throw new BusinessException("Category_AlreadyExists");
@@ -129,7 +135,7 @@ namespace Expense.Infrastructure.Categories
 
             _unitOfWork.Categories.Update(category);
 
-            await _activityLogService.LogActivityAsync(category.GroupId, userId, ActivityType.Updated, EntityType.Category, category.Id.ToString(), $"Category '{category.Name}' updated", cancellationToken);
+            await _activityLogService.LogActivityAsync(category.GroupId.Value, userId, ActivityType.Updated, EntityType.Category, category.Id.ToString(), $"Category '{category.Name}' updated", cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
 
@@ -146,7 +152,13 @@ namespace Expense.Infrastructure.Categories
                 throw new NotFoundException("Category_NotFound");
             }
 
-            var member = await _unitOfWork.Groups.GetMemberAsync(category.GroupId, userId, cancellationToken);
+            // Ensure it is a group category
+            if (!category.GroupId.HasValue)
+            {
+                throw new NotFoundException("Category_NotFound");
+            }
+
+            var member = await _unitOfWork.Groups.GetMemberAsync(category.GroupId.Value, userId, cancellationToken);
             if (member == null)
             {
                  throw new GroupAccessDeniedException("Group_NotMember");
@@ -160,7 +172,7 @@ namespace Expense.Infrastructure.Categories
             bool changed = false;
             if (dto.Name != null && dto.Name != category.Name)
             {
-                var existing = await _unitOfWork.Categories.GetByNameAsync(category.GroupId, dto.Name, cancellationToken);
+                var existing = await _unitOfWork.Categories.GetByNameAsync(category.GroupId.Value, dto.Name, cancellationToken);
                 if (existing != null)
                 {
                     throw new BusinessException("Category_AlreadyExists");
@@ -184,7 +196,7 @@ namespace Expense.Infrastructure.Categories
             if (changed)
             {
                 _unitOfWork.Categories.Update(category);
-                await _activityLogService.LogActivityAsync(category.GroupId, userId, ActivityType.Updated, EntityType.Category, category.Id.ToString(), $"Category partially updated", cancellationToken);
+                await _activityLogService.LogActivityAsync(category.GroupId.Value, userId, ActivityType.Updated, EntityType.Category, category.Id.ToString(), $"Category partially updated", cancellationToken);
                 await _unitOfWork.SaveAsync(cancellationToken);
             }
 
@@ -199,7 +211,13 @@ namespace Expense.Infrastructure.Categories
                 throw new NotFoundException("Category_NotFound");
             }
 
-            var member = await _unitOfWork.Groups.GetMemberAsync(category.GroupId, userId, cancellationToken);
+            // Ensure it is a group category
+            if (!category.GroupId.HasValue)
+            {
+                throw new NotFoundException("Category_NotFound");
+            }
+
+            var member = await _unitOfWork.Groups.GetMemberAsync(category.GroupId.Value, userId, cancellationToken);
             if (member == null)
             {
                  throw new GroupAccessDeniedException("Group_NotMember");
@@ -217,7 +235,7 @@ namespace Expense.Infrastructure.Categories
 
             _unitOfWork.Categories.Remove(category);
 
-            await _activityLogService.LogActivityAsync(category.GroupId, userId, ActivityType.Deleted, EntityType.Category, category.Id.ToString(), $"Category '{category.Name}' deleted", cancellationToken);
+            await _activityLogService.LogActivityAsync(category.GroupId.Value, userId, ActivityType.Deleted, EntityType.Category, category.Id.ToString(), $"Category '{category.Name}' deleted", cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
 
@@ -230,6 +248,7 @@ namespace Expense.Infrastructure.Categories
             {
                 Id = category.Id,
                 GroupId = category.GroupId,
+                UserId = category.UserId,
                 Name = category.Name,
                 Description = category.Description,
                 LogoUrl = category.LogoUrl,

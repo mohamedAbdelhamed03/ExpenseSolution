@@ -10,6 +10,10 @@ namespace Expense.Core.Domain.Entities
         public string Currency { get; set; } = "EGP";
         public DateTime Date { get; set; }
         public string Description { get; set; } = string.Empty;
+        
+        public Guid? CategoryId { get; set; }
+        public ExpenseCategory? Category { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

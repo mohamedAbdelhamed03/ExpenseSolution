@@ -19,14 +19,25 @@ namespace Expense.Infrastructure.Insights
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<InsightsSummaryDto>> GetInsightsAsync(Guid groupId, string period, string date, string userId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<InsightsSummaryDto>> GetInsightsAsync(Guid groupId, string period, string date, string scope, string userId, CancellationToken cancellationToken = default)
         {
             var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, userId, cancellationToken);
             if (!isMember) throw new GroupAccessDeniedException("Group_NotMember");
 
             ResolveDateRange(period, date, out DateTime startDate, out DateTime endDate);
 
-            var stats = await _unitOfWork.Expenses.GetInsightsByCategoryAsync(groupId, startDate, endDate);
+            IEnumerable<CategoryStatistics> stats;
+            scope = scope?.ToLower().Trim() ?? "group";
+
+            if (scope == "me")
+            {
+                stats = await _unitOfWork.Expenses.GetMyInsightsByCategoryAsync(groupId, userId, startDate, endDate);
+            }
+            else
+            {
+                stats = await _unitOfWork.Expenses.GetInsightsByCategoryAsync(groupId, startDate, endDate);
+            }
+
             var categories = await _unitOfWork.Categories.GetAll(c => c.GroupId == groupId);
 
             var result = new List<InsightsSummaryDto>();
@@ -62,6 +73,66 @@ namespace Expense.Infrastructure.Insights
                         CategoryName = catName,
                         Amount = stat.TotalAmount,
                         Percentage = total == 0 ? 0 : Math.Round((stat.TotalAmount / total) * 100, 2),
+                        Currency = currency
+                    });
+                }
+
+                summary.Categories = summary.Categories.OrderByDescending(c => c.Amount).ToList();
+                result.Add(summary);
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<InsightsSummaryDto>> GetHomeInsightsAsync(string period, string date, string userId, CancellationToken cancellationToken = default)
+        {
+            ResolveDateRange(period, date, out DateTime startDate, out DateTime endDate);
+
+            var groupStats = await _unitOfWork.Expenses.GetUserExpensesByCategoryAsync(userId, startDate, endDate);
+            var personalStats = await _unitOfWork.PersonalExpenses.GetPersonalExpensesByCategoryAsync(userId, startDate, endDate);
+
+            var allStats = groupStats.Concat(personalStats);
+            var categoryIds = allStats.Where(s => s.CategoryId.HasValue).Select(s => s.CategoryId.Value).Distinct().ToList();
+            var categories = await _unitOfWork.Categories.GetAll(c => categoryIds.Contains(c.Id));
+
+            var result = new List<InsightsSummaryDto>();
+            var byCurrency = allStats.GroupBy(s => s.Currency);
+
+            foreach (var currencyGroup in byCurrency)
+            {
+                var currency = currencyGroup.Key;
+                // Group by CategoryId within Currency to merge split and personal stats for same category
+                var categoryGroups = currencyGroup.GroupBy(s => s.CategoryId);
+                var total = currencyGroup.Sum(s => s.TotalAmount);
+
+                var summary = new InsightsSummaryDto
+                {
+                    GroupId = Guid.Empty, // Indicates home/global scope
+                    Period = period,
+                    Date = date,
+                    Currency = currency,
+                    TotalAmount = total,
+                    Categories = new List<CategoryInsightDto>()
+                };
+
+                foreach (var catGroup in categoryGroups)
+                {
+                    var catId = catGroup.Key;
+                    var catTotal = catGroup.Sum(s => s.TotalAmount);
+                    
+                    string catName = "Uncategorized";
+                    if (catId.HasValue)
+                    {
+                        var cat = categories.FirstOrDefault(c => c.Id == catId.Value);
+                        if (cat != null) catName = cat.Name;
+                    }
+
+                    summary.Categories.Add(new CategoryInsightDto
+                    {
+                        CategoryId = catId,
+                        CategoryName = catName,
+                        Amount = catTotal,
+                        Percentage = total == 0 ? 0 : Math.Round((catTotal / total) * 100, 2),
                         Currency = currency
                     });
                 }

@@ -8,6 +8,7 @@ namespace Expense.Core.Application.Insights
 {
     public interface IInsightsService
     {
-        Task<IEnumerable<InsightsSummaryDto>> GetInsightsAsync(Guid groupId, string period, string date, string userId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<InsightsSummaryDto>> GetInsightsAsync(Guid groupId, string period, string date, string scope, string userId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<InsightsSummaryDto>> GetHomeInsightsAsync(string period, string date, string userId, CancellationToken cancellationToken = default);
     }
 }

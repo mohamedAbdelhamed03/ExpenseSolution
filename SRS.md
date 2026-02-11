@@ -86,6 +86,8 @@ Clean Architecture with layered separation:
 2. Insights support period filters (month, year, all).
 3. Aggregations are grouped by currency and do not mix currencies.
 4. Aggregations respect stored exchange-rate snapshots.
+5. Users can filter group insights by scope (`group` or `me`) to see their specific share.
+6. Users can view a global "Home Insights" report aggregating their share of group expenses and all personal expenses.
 
 ### 3.12 Notifications
 1. Notifications are persisted for auditing and later viewing.
@@ -96,6 +98,7 @@ Clean Architecture with layered separation:
 1. Users can record private expenses not shared with any group.
 2. Personal expenses have no splits and affect no balances.
 3. Only the creating user can view or edit their personal expenses.
+4. Personal expenses can be assigned to a category.
 
 ### 3.14 Home Feed
 1. Users can view a unified feed of all relevant activities (Group Expenses, Settlements, Personal Expenses).

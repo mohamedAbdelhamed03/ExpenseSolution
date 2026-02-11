@@ -10,5 +10,7 @@ namespace Expense.Core.Application.Persistence
     {
         Task<IEnumerable<Expense.Core.Domain.Entities.Expense>> GetExpensesByGroupAsync(Guid groupId);
         Task<IEnumerable<CategoryStatistics>> GetInsightsByCategoryAsync(Guid groupId, DateTime startDate, DateTime endDate);
+        Task<IEnumerable<CategoryStatistics>> GetMyInsightsByCategoryAsync(Guid groupId, string userId, DateTime startDate, DateTime endDate);
+        Task<IEnumerable<CategoryStatistics>> GetUserExpensesByCategoryAsync(string userId, DateTime startDate, DateTime endDate);
     }
 }

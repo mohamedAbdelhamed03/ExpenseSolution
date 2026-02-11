@@ -5,7 +5,8 @@ namespace Expense.Core.Domain.Entities
     public class ExpenseCategory
     {
         public Guid Id { get; set; }
-        public Guid GroupId { get; set; }
+        public Guid? GroupId { get; set; }
+        public string? UserId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string? LogoUrl { get; set; }

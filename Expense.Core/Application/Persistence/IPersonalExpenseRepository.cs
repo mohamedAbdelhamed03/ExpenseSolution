@@ -9,5 +9,6 @@ namespace Expense.Core.Application.Persistence
     public interface IPersonalExpenseRepository : IRepository<PersonalExpense>
     {
         Task<IEnumerable<PersonalExpense>> GetUserPersonalExpensesAsync(string userId, int page, int pageSize, CancellationToken cancellationToken = default);
+        Task<IEnumerable<DTOs.Insights.CategoryStatistics>> GetPersonalExpensesByCategoryAsync(string userId, DateTime startDate, DateTime endDate);
     }
 }

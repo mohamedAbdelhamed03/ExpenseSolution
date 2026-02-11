@@ -195,7 +195,8 @@
   "amount": 50.00,
   "currency": "USD",
   "date": "2026-02-10T12:00:00Z",
-  "description": "Coffee"
+  "description": "Coffee",
+  "categoryId": "7f9f62d1-7c2a-4d8d-9c6f-0b2c4a8e9c11"
 }
 ```
 
@@ -273,6 +274,11 @@
 
 ### GET /api/groups/{groupId}/insights
 - Description: Get expense insights for a group (totals, category breakdown, percentages).
+- Auth required: Yes
+- Query params: `period=month|year|all`, `date=YYYY-MM|YYYY`, `scope=group|me`
+
+### GET /api/insights/home
+- Description: Get aggregated insights for the current user across all groups and personal expenses.
 - Auth required: Yes
 - Query params: `period=month|year|all`, `date=YYYY-MM|YYYY`
 

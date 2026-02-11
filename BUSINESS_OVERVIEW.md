@@ -36,7 +36,7 @@ An expense is a recorded cost paid by one person on behalf of the group. Any gro
 - Categories help organize spending (e.g., food, transport, utilities) to make reporting clearer.
 
 ### Personal Expenses
-Users can also track their own private spending that is not shared with any group. This allows the platform to serve as a complete financial tracker, combining both shared and personal costs in one place. Only the user who created the personal expense can view it.
+Users can also track their own private spending that is not shared with any group. This allows the platform to serve as a complete financial tracker, combining both shared and personal costs in one place. Only the user who created the personal expense can view it. Personal expenses can be categorized just like group expenses.
 
 ### Balances
 A balance shows each person’s net position:
@@ -62,6 +62,7 @@ Users can view spending summaries to understand behavior and trends:
 - Total spending over a period
 - Breakdown by category
 - Monthly and yearly views
+- Personal spending insights across all groups and personal expenses
 These insights help users make better decisions, plan budgets, and identify where money is being spent most.
 
 ## 7. Notifications

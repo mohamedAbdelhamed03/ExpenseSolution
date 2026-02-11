@@ -19,11 +19,27 @@ namespace Expense.Infrastructure.Repositories
         {
             return await _db.PersonalExpenses
                 .AsNoTracking()
+                .Include(e => e.Category)
                 .Where(e => e.UserId == userId)
                 .OrderByDescending(e => e.Date)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
+        }
+
+        public async Task<IEnumerable<Core.DTOs.Insights.CategoryStatistics>> GetPersonalExpensesByCategoryAsync(string userId, DateTime startDate, DateTime endDate)
+        {
+            return await _db.PersonalExpenses
+                .AsNoTracking()
+                .Where(e => e.UserId == userId && e.Date >= startDate && e.Date <= endDate)
+                .GroupBy(e => new { e.CategoryId, e.Currency })
+                .Select(g => new Core.DTOs.Insights.CategoryStatistics
+                {
+                    CategoryId = g.Key.CategoryId,
+                    Currency = g.Key.Currency,
+                    TotalAmount = g.Sum(e => e.Amount)
+                })
+                .ToListAsync();
         }
     }
 }
