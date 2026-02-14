@@ -114,6 +114,9 @@ Clean Architecture with layered separation:
 ### 4.2 Security
 1. JWT validation enforces issuer, audience, signature, and expiry.
 2. Unauthorized access returns 401/403 responses.
+3. Production secrets and production connection strings are supplied via environment variables; they are not committed to source control.
+4. Application startup fails fast if required configuration is missing (JWT signing key, database connection string, Cloudinary secret).
+5. CORS uses an allowlist of origins loaded from configuration and supports credentials.
 
 ### 4.3 Reliability & Transactional Guarantees
 1. Write operations are transactional.

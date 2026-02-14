@@ -13,6 +13,7 @@ using Expense.Infrastructure.Repositories;
 using Expense.Core.Application.ActivityLogs;
 using Expense.Core.Application.Notifications;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using Moq;
 using FluentValidation;
@@ -26,6 +27,7 @@ namespace Expense.UnitTests
         private readonly Mock<IValidator<UpdateExpenseDto>> _mockUpdateValidator;
         private readonly Mock<IValidator<UpdateExpensePatchDto>> _mockPatchValidator;
         private readonly Mock<IRealtimeNotifier> _mockNotifier;
+        private readonly Mock<ILogger<ExpenseService>> _mockLogger;
 
         public ExpenseServiceTests()
         {
@@ -42,6 +44,7 @@ namespace Expense.UnitTests
                 .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
             _mockNotifier = new Mock<IRealtimeNotifier>();
+            _mockLogger = new Mock<ILogger<ExpenseService>>();
         }
 
         private ApplicationDbContext CreateContext(string dbName)
@@ -72,7 +75,8 @@ namespace Expense.UnitTests
                 _mockNotifier.Object,
                 _mockCreateValidator.Object,
                 _mockUpdateValidator.Object,
-                _mockPatchValidator.Object);
+                _mockPatchValidator.Object,
+                _mockLogger.Object);
 
             var dto = new CreateExpenseDto
             {
@@ -113,7 +117,8 @@ namespace Expense.UnitTests
                 _mockNotifier.Object,
                 _mockCreateValidator.Object,
                 _mockUpdateValidator.Object,
-                _mockPatchValidator.Object);
+                _mockPatchValidator.Object,
+                _mockLogger.Object);
             var dto = new CreateExpenseDto { Amount = 100 };
 
             // Act & Assert
@@ -140,7 +145,8 @@ namespace Expense.UnitTests
                 _mockNotifier.Object,
                 _mockCreateValidator.Object,
                 _mockUpdateValidator.Object,
-                _mockPatchValidator.Object);
+                _mockPatchValidator.Object,
+                _mockLogger.Object);
             var dto = new CreateExpenseDto
             {
                 Amount = 100,
@@ -179,7 +185,8 @@ namespace Expense.UnitTests
                 _mockNotifier.Object,
                 _mockCreateValidator.Object,
                 _mockUpdateValidator.Object,
-                _mockPatchValidator.Object);
+                _mockPatchValidator.Object,
+                _mockLogger.Object);
             
             var dto = new CreateExpenseDto
             {

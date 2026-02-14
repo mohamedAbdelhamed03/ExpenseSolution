@@ -14,6 +14,7 @@ using FluentValidation;
 using Expense.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Expense.Core.Common.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Expense.Infrastructure.Groups
 {
@@ -24,23 +25,27 @@ namespace Expense.Infrastructure.Groups
         private readonly IRealtimeNotifier _notifier;
         private readonly IValidator<UpdateGroupMemberRolePatchDto> _patchValidator;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<GroupService> _logger;
         
         public GroupService(
             IUnitOfWork unitOfWork, 
             IActivityLogService activityLogService,
             IRealtimeNotifier notifier,
             IValidator<UpdateGroupMemberRolePatchDto> patchValidator,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ILogger<GroupService> logger)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
             _notifier = notifier;
             _patchValidator = patchValidator;
             _userManager = userManager;
+            _logger = logger;
         }
 
         public async Task<GroupDto> CreateGroupAsync(string creatorUserId, CreateGroupDto dto, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Create group requested. CreatorUserId: {CreatorUserId}", creatorUserId);
             var inviteCode = Guid.NewGuid().ToString("N")[..8];
             var group = new Group
             {
@@ -65,6 +70,7 @@ namespace Expense.Infrastructure.Groups
             await _activityLogService.LogActivityAsync(group.Id, creatorUserId, ActivityType.Created, EntityType.Group, group.Id.ToString(), $"Group '{group.Name}' created", cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("Group created. GroupId: {GroupId}, CreatorUserId: {CreatorUserId}", group.Id, creatorUserId);
 
             // Map directly from entity since we have all data in memory
             return new GroupDto
@@ -86,6 +92,7 @@ namespace Expense.Infrastructure.Groups
 
         public async Task<GroupDto?> GetGroupAsync(Guid groupId, string requesterUserId, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Group details requested. GroupId: {GroupId}, RequesterUserId: {RequesterUserId}", groupId, requesterUserId);
             var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, requesterUserId, cancellationToken);
                 
             if (!isMember) return null;
@@ -110,6 +117,7 @@ namespace Expense.Infrastructure.Groups
 
         public async Task<bool> JoinGroupAsync(string userId, string inviteCode, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Join group requested. UserId: {UserId}, InviteCodeLength: {InviteCodeLength}", userId, inviteCode?.Length ?? 0);
             var group = await _unitOfWork.Groups.GetByInviteCodeAsync(inviteCode, cancellationToken);
                 
             if (group == null) return false;
@@ -130,6 +138,7 @@ namespace Expense.Infrastructure.Groups
             await _activityLogService.LogActivityAsync(group.Id, userId, ActivityType.Joined, EntityType.Group, group.Id.ToString(), null, cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("User joined group. GroupId: {GroupId}, UserId: {UserId}", group.Id, userId);
             
             await NotifyGroupMembersAsync(group.Id, userId, "Member_Joined", new { UserId = userId }, cancellationToken);
 
@@ -138,6 +147,7 @@ namespace Expense.Infrastructure.Groups
 
         public async Task<bool> AddMemberByEmailAsync(Guid groupId, string requesterUserId, AddGroupMemberDto dto, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Add group member requested. GroupId: {GroupId}, RequesterUserId: {RequesterUserId}", groupId, requesterUserId);
             var isRequesterMember = await _unitOfWork.Groups.IsMemberAsync(groupId, requesterUserId, cancellationToken);
             if (!isRequesterMember) throw new GroupAccessDeniedException("Group_NotMember");
 
@@ -165,6 +175,7 @@ namespace Expense.Infrastructure.Groups
             await _activityLogService.LogActivityAsync(groupId, requesterUserId, ActivityType.Updated, EntityType.Group, groupId.ToString(), $"Added user {user.Email} to group", cancellationToken);
             
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("Group member added. GroupId: {GroupId}, AddedUserId: {AddedUserId}, RequestedBy: {RequesterUserId}", groupId, user.Id, requesterUserId);
 
             await NotifyGroupMembersAsync(groupId, requesterUserId, "Member_Added", new { UserId = user.Id, Email = user.Email }, cancellationToken);
             
@@ -201,12 +212,15 @@ namespace Expense.Infrastructure.Groups
             }
             catch
             {
+                _logger.LogWarning("Group notification dispatch skipped due to notifier failure. GroupId: {GroupId}, ActorUserId: {ActorUserId}, Type: {NotificationType}",
+                    groupId, actorUserId, type);
                 // Fire and forget
             }
         }
 
         public async Task<IEnumerable<GroupDto>> GetUserGroupsAsync(string userId, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("User groups requested. UserId: {UserId}", userId);
             var groups = await _unitOfWork.Groups.GetGroupsForUserAsync(userId, cancellationToken);
             return groups.Select(g => new GroupDto
             {
@@ -223,6 +237,7 @@ namespace Expense.Infrastructure.Groups
 
         public async Task<bool> UpdateMemberRoleAsync(Guid groupId, string requesterUserId, string targetUserId, string newRole, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Update member role requested. GroupId: {GroupId}, RequesterUserId: {RequesterUserId}, TargetUserId: {TargetUserId}", groupId, requesterUserId, targetUserId);
             var requester = await _unitOfWork.Groups.GetMemberAsync(groupId, requesterUserId, cancellationToken);
             if (requester == null || requester.Role != GroupRole.Admin) return false;
 
@@ -237,6 +252,8 @@ namespace Expense.Infrastructure.Groups
                 await _activityLogService.LogActivityAsync(groupId, targetUserId, ActivityType.Updated, EntityType.Member, targetUserId, $"Role updated to {newRole} by {requesterUserId}", cancellationToken);
 
                 await _unitOfWork.SaveAsync(cancellationToken);
+                _logger.LogInformation("Member role updated. GroupId: {GroupId}, TargetUserId: {TargetUserId}, NewRole: {NewRole}, RequestedBy: {RequesterUserId}",
+                    groupId, targetUserId, newRole, requesterUserId);
 
                 return true;
             }
@@ -245,6 +262,8 @@ namespace Expense.Infrastructure.Groups
 
         public async Task<bool> UpdateMemberRolePartialAsync(Guid groupId, string requesterUserId, string targetUserId, UpdateGroupMemberRolePatchDto dto, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Partial member role update requested. GroupId: {GroupId}, RequesterUserId: {RequesterUserId}, TargetUserId: {TargetUserId}",
+                groupId, requesterUserId, targetUserId);
             await _patchValidator.ValidateAndThrowAsync(dto, cancellationToken);
 
             var requester = await _unitOfWork.Groups.GetMemberAsync(groupId, requesterUserId, cancellationToken);
@@ -265,6 +284,8 @@ namespace Expense.Infrastructure.Groups
                         await _activityLogService.LogActivityAsync(groupId, targetUserId, ActivityType.Updated, EntityType.Member, targetUserId, $"Role updated to {dto.Role} by {requesterUserId}", cancellationToken);
 
                         await _unitOfWork.SaveAsync(cancellationToken);
+                        _logger.LogInformation("Member role partially updated. GroupId: {GroupId}, TargetUserId: {TargetUserId}, NewRole: {NewRole}, RequestedBy: {RequesterUserId}",
+                            groupId, targetUserId, dto.Role, requesterUserId);
                         return true;
                     }
                 }
@@ -274,6 +295,8 @@ namespace Expense.Infrastructure.Groups
 
         public async Task<bool> RemoveMemberAsync(Guid groupId, string requesterUserId, string targetUserId, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Remove member requested. GroupId: {GroupId}, RequesterUserId: {RequesterUserId}, TargetUserId: {TargetUserId}",
+                groupId, requesterUserId, targetUserId);
             var requester = await _unitOfWork.Groups.GetMemberAsync(groupId, requesterUserId, cancellationToken);
             if (requester == null) return false;
 
@@ -294,6 +317,8 @@ namespace Expense.Infrastructure.Groups
             await _activityLogService.LogActivityAsync(groupId, targetUserId, activityType, EntityType.Group, groupId.ToString(), details, cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("Member removed from group. GroupId: {GroupId}, TargetUserId: {TargetUserId}, RequestedBy: {RequesterUserId}, ActivityType: {ActivityType}",
+                groupId, targetUserId, requesterUserId, activityType);
 
             return true;
         }

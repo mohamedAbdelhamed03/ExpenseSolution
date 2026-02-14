@@ -1,8 +1,9 @@
-
 using Expense.API.Extensions.StartupExtensions;
 using Expense.API.Startup;
 using Expense.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Serilog;
+using Serilog.Events;
 
 namespace Expense.API
 {
@@ -11,6 +12,16 @@ namespace Expense.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Logging.ClearProviders();
+            builder.Host.UseSerilog((context, _, loggerConfiguration) =>
+            {
+                loggerConfiguration
+                    .ReadFrom.Configuration(context.Configuration)
+                    .Enrich.FromLogContext()
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+                    .MinimumLevel.Override("Microsoft.AspNetCore.Routing.EndpointMiddleware", LogEventLevel.Warning);
+            });
 
             // Configure services using extension method
             builder.ConfigureApplicationServices();         
@@ -44,6 +55,10 @@ namespace Expense.API
                 var logger = app.Services.GetRequiredService<ILogger<Program>>();
                 logger.LogCritical(ex, "Host terminated unexpectedly");
                 throw;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
             }
         }
     }

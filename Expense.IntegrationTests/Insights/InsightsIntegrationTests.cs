@@ -56,7 +56,9 @@ namespace Expense.IntegrationTests.Insights
             var response = await _client.GetAsync($"/api/groups/{groupId}/insights?period=month&date={period}");
             
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<InsightsSummaryDto>>();
+            var responseBody = await response.Content.ReadFromJsonAsync<APIResponse<IEnumerable<InsightsSummaryDto>>>();
+            responseBody.Should().NotBeNull();
+            var result = responseBody!.Data;
 
             // 6. Assert
             result.Should().HaveCount(1);

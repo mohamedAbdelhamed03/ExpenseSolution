@@ -58,6 +58,28 @@ The system includes unit and integration tests across core flows:
 - Service + Repository pattern
 - No full CQRS
 
+## Configuration & Deployment
+### Required Environment Variables (Production)
+- `ConnectionStrings__DefaultConnection`
+- `JwtSettings__Key`
+- `JwtSettings__Issuer`
+- `JwtSettings__Audience`
+- `Cloudinary__CloudName`
+- `Cloudinary__ApiKey`
+- `Cloudinary__ApiSecret`
+
+### Development Defaults
+- Local development can use LocalDB via `Expense.API/appsettings.Development.json`.
+- The base `Expense.API/appsettings.json` does not contain production secrets.
+
+### CORS
+- The API uses a named CORS policy `FrontendPolicy`.
+- Allowed origins are loaded from `AllowedOrigins` configuration.
+- Credentials are enabled; do not use wildcard origins with credentials.
+
+### Logging (Cloud Friendly)
+- Production configuration prefers console logging and does not assume persistent disk.
+
 ## Case Study Outcomes
 - Financial correctness through explicit domain rules.
 - Consistency guarantees with transactional boundaries.

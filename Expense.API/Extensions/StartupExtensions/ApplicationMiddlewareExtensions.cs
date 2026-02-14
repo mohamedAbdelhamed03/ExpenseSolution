@@ -1,6 +1,8 @@
 
 using Expense.API.Middlewares;
 using Expense.Infrastructure.Notifications;
+using Serilog;
+using Serilog.Events;
 
 namespace Expense.API.Extensions.StartupExtensions;
 
@@ -13,6 +15,32 @@ public static class ApplicationMiddlewareExtensions
     public static WebApplication ConfigureApplicationMiddleware(this WebApplication app)
     {
         app.UseRequestLocalization();
+        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+        app.UseSerilogRequestLogging(options =>
+        {
+            options.GetLevel = (httpContext, _, exception) =>
+            {
+                if (exception != null)
+                {
+                    return LogEventLevel.Error;
+                }
+
+                return httpContext.Response.StatusCode >= 500
+                    ? LogEventLevel.Error
+                    : LogEventLevel.Information;
+            };
+
+            options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+            {
+                diagnosticContext.Set("TraceId", httpContext.TraceIdentifier);
+                diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+                diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+                diagnosticContext.Set("UserId", httpContext.User?.Identity?.IsAuthenticated == true
+                    ? httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                    : null);
+            };
+        });
 
         app.UseSwagger();
         app.UseSwaggerUI(c =>
@@ -29,14 +57,13 @@ public static class ApplicationMiddlewareExtensions
             c.DefaultModelExpandDepth(1);
         });
 
-        app.UseCors();
+        app.UseCors("FrontendPolicy");
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseAuthentication();
         app.UseWebSockets();
         app.UseMiddleware<WebSocketMiddleware>();
         app.UseAuthorization();
-        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
         app.MapControllers();
         return app;

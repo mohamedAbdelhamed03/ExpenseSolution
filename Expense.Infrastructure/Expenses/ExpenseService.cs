@@ -13,6 +13,7 @@ using Expense.Core.Domain.Enums;
 using Expense.Core.DTOs.Expenses;
 using Expense.Core.DTOs.Notifications;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using ExpenseEntity = Expense.Core.Domain.Entities.Expense;
 
 namespace Expense.Infrastructure.Expenses
@@ -25,6 +26,7 @@ namespace Expense.Infrastructure.Expenses
         private readonly IValidator<CreateExpenseDto> _createValidator;
         private readonly IValidator<UpdateExpenseDto> _updateValidator;
         private readonly IValidator<UpdateExpensePatchDto> _patchValidator;
+        private readonly ILogger<ExpenseService> _logger;
         
         public ExpenseService(
             IUnitOfWork unitOfWork, 
@@ -32,7 +34,8 @@ namespace Expense.Infrastructure.Expenses
             IRealtimeNotifier notifier,
             IValidator<CreateExpenseDto> createValidator,
             IValidator<UpdateExpenseDto> updateValidator,
-            IValidator<UpdateExpensePatchDto> patchValidator)
+            IValidator<UpdateExpensePatchDto> patchValidator,
+            ILogger<ExpenseService> logger)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
@@ -40,10 +43,12 @@ namespace Expense.Infrastructure.Expenses
             _createValidator = createValidator;
             _updateValidator = updateValidator;
             _patchValidator = patchValidator;
+            _logger = logger;
         }
 
         public async Task<ExpenseDto> CreateExpenseAsync(Guid groupId, string paidByUserId, CreateExpenseDto dto, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Create expense requested. GroupId: {GroupId}, ActorUserId: {ActorUserId}, HasCustomSplits: {HasCustomSplits}", groupId, paidByUserId, dto.Splits?.Any() == true);
             await _createValidator.ValidateAndThrowAsync(dto, cancellationToken);
 
             // 1. Check if user is member
@@ -148,6 +153,8 @@ namespace Expense.Infrastructure.Expenses
             await _activityLogService.LogActivityAsync(groupId, paidByUserId, ActivityType.Created, EntityType.Expense, expense.Id.ToString(), $"Amount: {dto.Amount}", cancellationToken);
             
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("Expense created. GroupId: {GroupId}, ExpenseId: {ExpenseId}, ActorUserId: {ActorUserId}, SplitCount: {SplitCount}, Amount: {Amount}",
+                groupId, expense.Id, paidByUserId, dto.Splits.Count(), dto.Amount);
             
             await NotifyGroupMembersAsync(groupId, paidByUserId, "Expense_Created", new { ExpenseId = expense.Id, Amount = expense.Amount, Description = expense.Description }, cancellationToken);
             
@@ -168,6 +175,7 @@ namespace Expense.Infrastructure.Expenses
 
         public async Task<IEnumerable<ExpenseDto>> GetGroupExpensesAsync(Guid groupId, string requesterUserId, CancellationToken cancellationToken = default)
         {
+             _logger.LogDebug("Group expenses requested. GroupId: {GroupId}, RequesterUserId: {RequesterUserId}", groupId, requesterUserId);
              var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, requesterUserId, cancellationToken);
              if (!isMember) throw new GroupAccessDeniedException("Group_NotMember");
             
@@ -197,6 +205,7 @@ namespace Expense.Infrastructure.Expenses
         }
         public async Task<ExpenseDto?> GetExpenseAsync(Guid groupId, Guid expenseId, string requesterUserId, CancellationToken cancellationToken = default)
         {
+            _logger.LogDebug("Single expense requested. GroupId: {GroupId}, ExpenseId: {ExpenseId}, RequesterUserId: {RequesterUserId}", groupId, expenseId, requesterUserId);
             var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, requesterUserId, cancellationToken);
             if (!isMember) throw new GroupAccessDeniedException("Group_NotMember");
 
@@ -225,6 +234,7 @@ namespace Expense.Infrastructure.Expenses
 
         public async Task<ExpenseDto> UpdateExpenseAsync(Guid groupId, Guid expenseId, string userId, UpdateExpenseDto dto, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Update expense requested. GroupId: {GroupId}, ExpenseId: {ExpenseId}, ActorUserId: {ActorUserId}", groupId, expenseId, userId);
             await _updateValidator.ValidateAndThrowAsync(dto, cancellationToken);
 
             var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, userId, cancellationToken);
@@ -335,6 +345,8 @@ namespace Expense.Infrastructure.Expenses
 
             await _activityLogService.LogActivityAsync(expense.GroupId, userId, ActivityType.Updated, EntityType.Expense, expense.Id.ToString(), $"Amount: {dto.Amount}", cancellationToken);
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("Expense updated. GroupId: {GroupId}, ExpenseId: {ExpenseId}, ActorUserId: {ActorUserId}, SplitCount: {SplitCount}, Amount: {Amount}",
+                expense.GroupId, expense.Id, userId, newSplits.Count, dto.Amount);
 
             await NotifyGroupMembersAsync(groupId, userId, "Expense_Updated", new { ExpenseId = expense.Id, Amount = expense.Amount, Description = expense.Description }, cancellationToken);
 
@@ -355,6 +367,7 @@ namespace Expense.Infrastructure.Expenses
 
         public async Task<ExpenseDto> UpdateExpensePartialAsync(Guid groupId, Guid expenseId, string userId, UpdateExpensePatchDto dto, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Partial expense update requested. GroupId: {GroupId}, ExpenseId: {ExpenseId}, ActorUserId: {ActorUserId}", groupId, expenseId, userId);
             await _patchValidator.ValidateAndThrowAsync(dto, cancellationToken);
 
             var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, userId, cancellationToken);
@@ -410,6 +423,8 @@ namespace Expense.Infrastructure.Expenses
                 await _activityLogService.LogActivityAsync(groupId, userId, ActivityType.Updated, EntityType.Expense, expense.Id.ToString(), $"Partial update: {string.Join(", ", changes)}", cancellationToken);
                 
                 await _unitOfWork.SaveAsync(cancellationToken);
+                _logger.LogInformation("Expense partially updated. GroupId: {GroupId}, ExpenseId: {ExpenseId}, ActorUserId: {ActorUserId}, ChangeCount: {ChangeCount}",
+                    groupId, expense.Id, userId, changes.Count);
 
                 await NotifyGroupMembersAsync(groupId, userId, "Expense_Updated", new { ExpenseId = expense.Id, Changes = changes }, cancellationToken);
             }
@@ -435,6 +450,7 @@ namespace Expense.Infrastructure.Expenses
 
         public async Task<bool> DeleteExpenseAsync(Guid groupId, Guid expenseId, string userId, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Delete expense requested. GroupId: {GroupId}, ExpenseId: {ExpenseId}, ActorUserId: {ActorUserId}", groupId, expenseId, userId);
             var isMember = await _unitOfWork.Groups.IsMemberAsync(groupId, userId, cancellationToken);
             if (!isMember) throw new GroupAccessDeniedException("Group_NotMember");
 
@@ -457,6 +473,8 @@ namespace Expense.Infrastructure.Expenses
             await _activityLogService.LogActivityAsync(groupId, userId, ActivityType.Deleted, EntityType.Expense, expense.Id.ToString(), null, cancellationToken);
             
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("Expense deleted. GroupId: {GroupId}, ExpenseId: {ExpenseId}, ActorUserId: {ActorUserId}",
+                groupId, expenseId, userId);
             
             await NotifyGroupMembersAsync(groupId, userId, "Expense_Deleted", new { ExpenseId = expenseId }, cancellationToken);
 
@@ -485,6 +503,8 @@ namespace Expense.Infrastructure.Expenses
             }
             catch
             {
+                _logger.LogWarning("Expense notification dispatch skipped due to notifier failure. GroupId: {GroupId}, ActorUserId: {ActorUserId}, Type: {NotificationType}",
+                    groupId, actorUserId, type);
                 // Fire and forget, don't block business logic
             }
         }

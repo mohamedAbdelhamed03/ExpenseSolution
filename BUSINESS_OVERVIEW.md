@@ -79,6 +79,10 @@ The system is designed to be reliable and trustworthy:
 - If a user is offline, information is still available when they return.
 - Records can be reviewed anytime, which builds confidence and avoids disputes.
 
+## 8.1 Operational Security (High Level)
+- Production secrets (database connection string, JWT signing key, third‑party credentials) are provided via environment variables and are not committed to the repository.
+- The system fails fast at startup if required configuration is missing, preventing partially working deployments.
+
 ## 9. Typical User Journey
 1. A user creates a group for a trip.
 2. They invite friends to join.

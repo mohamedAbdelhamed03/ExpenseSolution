@@ -55,6 +55,37 @@ public static class ApplicationServiceExtensions
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
+        var environment = builder.Environment;
+
+        var jwtSection = configuration.GetSection("JwtSettings");
+        var jwtSettings = jwtSection.Get<JwtSettings>() ?? new JwtSettings();
+
+        if (string.IsNullOrWhiteSpace(jwtSettings.Key))
+        {
+            throw new InvalidOperationException("Missing required configuration: JwtSettings:Key (set env var JwtSettings__Key).");
+        }
+
+        if (string.IsNullOrWhiteSpace(jwtSettings.Issuer))
+        {
+            throw new InvalidOperationException("Missing required configuration: JwtSettings:Issuer (set env var JwtSettings__Issuer).");
+        }
+
+        if (string.IsNullOrWhiteSpace(jwtSettings.Audience))
+        {
+            throw new InvalidOperationException("Missing required configuration: JwtSettings:Audience (set env var JwtSettings__Audience).");
+        }
+
+        var cloudinarySettings = configuration.GetSection("Cloudinary").Get<CloudinarySettings>() ?? new CloudinarySettings();
+        if (string.IsNullOrWhiteSpace(cloudinarySettings.ApiSecret))
+        {
+            throw new InvalidOperationException("Missing required configuration: Cloudinary:ApiSecret (set env var Cloudinary__ApiSecret).");
+        }
+
+        var defaultConnection = configuration.GetConnectionString("DefaultConnection");
+        if (!environment.IsEnvironment("Test") && string.IsNullOrWhiteSpace(defaultConnection))
+        {
+            throw new InvalidOperationException("Missing required configuration: ConnectionStrings:DefaultConnection (set env var ConnectionStrings__DefaultConnection).");
+        }
 
         services.AddControllers()
             .ConfigureApiBehaviorOptions(options =>
@@ -81,11 +112,19 @@ public static class ApplicationServiceExtensions
 
         services.AddCors(options =>
         {
-            options.AddDefaultPolicy(policy =>
+            var allowedOrigins = configuration.GetSection("AllowedOrigins")
+                .Get<string[]>()?
+                .Where(o => !string.IsNullOrWhiteSpace(o))
+                .Select(o => o.Trim())
+                .Distinct()
+                .ToArray() ?? Array.Empty<string>();
+
+            options.AddPolicy("FrontendPolicy", policy =>
             {
-                policy.AllowAnyOrigin()
-                      .AllowAnyHeader()
-                      .AllowAnyMethod();
+                policy.WithOrigins(allowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
 
@@ -155,12 +194,6 @@ public static class ApplicationServiceExtensions
         services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
-
-            if (builder.Environment.IsDevelopment())
-            {
-                options.LogTo(Console.WriteLine, LogLevel.Information)
-                       .EnableSensitiveDataLogging();
-            }
         });
 
         // Configure Identity
@@ -219,9 +252,6 @@ public static class ApplicationServiceExtensions
 
         services.AddHttpContextAccessor();
 
-        var jwtSection = configuration.GetSection("JwtSettings");
-        var jwtSettings = jwtSection.Get<JwtSettings>();
-
         services.Configure<JwtSettings>(jwtSection);
         services.AddAuthentication(options =>
         {
@@ -236,9 +266,9 @@ public static class ApplicationServiceExtensions
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtSettings?.Issuer,
-                ValidAudience = jwtSettings?.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.Key ?? string.Empty)),
+                ValidIssuer = jwtSettings.Issuer,
+                ValidAudience = jwtSettings.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
                 RequireExpirationTime = true,
                 RequireSignedTokens = true,
                 ClockSkew = TimeSpan.Zero

@@ -1,12 +1,9 @@
-using System;
 using System.Net.WebSockets;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using Expense.Infrastructure.Notifications;
 
-namespace Expense.Infrastructure.Notifications
+
+namespace Expense.API.Middlewares
 {
     public class WebSocketMiddleware
     {
@@ -25,11 +22,14 @@ namespace Expense.Infrastructure.Notifications
         {
             if (context.Request.Path == "/ws/notifications")
             {
+                _logger.LogDebug("WebSocket endpoint hit. TraceId: {TraceId}", context.TraceIdentifier);
+
                 if (context.WebSockets.IsWebSocketRequest)
                 {
                     // Auth should have been handled by JwtBearer middleware (OnMessageReceived)
                     if (context.User.Identity?.IsAuthenticated != true)
                     {
+                        _logger.LogWarning("Unauthorized WebSocket request rejected. TraceId: {TraceId}", context.TraceIdentifier);
                         context.Response.StatusCode = 401;
                         return;
                     }
@@ -37,18 +37,20 @@ namespace Expense.Infrastructure.Notifications
                     var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                     if (string.IsNullOrEmpty(userId))
                     {
+                        _logger.LogWarning("WebSocket request missing user identifier. TraceId: {TraceId}", context.TraceIdentifier);
                         context.Response.StatusCode = 401;
                         return;
                     }
 
                     using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
                     _connectionManager.AddSocket(userId, webSocket);
-                    _logger.LogInformation("WebSocket connected for user {UserId}", userId);
+                    _logger.LogInformation("WebSocket connected. UserId: {UserId}, TraceId: {TraceId}", userId, context.TraceIdentifier);
 
                     await ReceiveLoop(webSocket, userId);
                 }
                 else
                 {
+                    _logger.LogWarning("Invalid WebSocket handshake request. TraceId: {TraceId}", context.TraceIdentifier);
                     context.Response.StatusCode = 400;
                 }
             }
@@ -68,7 +70,7 @@ namespace Expense.Infrastructure.Notifications
                     var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        _logger.LogInformation("WebSocket disconnected for user {UserId}", userId);
+                        _logger.LogInformation("WebSocket disconnected. UserId: {UserId}", userId);
                         await _connectionManager.RemoveSocketAsync(userId, socket);
                         break;
                     }
@@ -77,7 +79,7 @@ namespace Expense.Infrastructure.Notifications
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "WebSocket error for user {UserId}", userId);
+                _logger.LogError(ex, "WebSocket receive loop failed. UserId: {UserId}", userId);
                 await _connectionManager.RemoveSocketAsync(userId, socket);
             }
         }

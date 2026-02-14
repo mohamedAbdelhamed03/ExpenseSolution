@@ -11,10 +11,13 @@ services:
       - "5001:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=db;Database=ExpenseDB;User Id=sa;Password=YourStrong@Password123;TrustServerCertificate=True;
-      - JwtSettings__Key=ThisIsMySecretKeyForJwtTokenGenerationAndItShouldBeAtLeast32CharactersLong
-      - JwtSettings__Issuer=ExpenseAPI
-      - JwtSettings__Audience=ExpenseUsers
+      - ConnectionStrings__DefaultConnection=${CONNECTIONSTRINGS__DEFAULTCONNECTION}
+      - JwtSettings__Key=${JWTSETTINGS__KEY}
+      - JwtSettings__Issuer=${JWTSETTINGS__ISSUER}
+      - JwtSettings__Audience=${JWTSETTINGS__AUDIENCE}
+      - Cloudinary__CloudName=${CLOUDINARY__CLOUDNAME}
+      - Cloudinary__ApiKey=${CLOUDINARY__APIKEY}
+      - Cloudinary__ApiSecret=${CLOUDINARY__APISECRET}
     depends_on:
       - db
     networks:
@@ -24,7 +27,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=YourStrong@Password123
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
     ports:
       - "1433:1433"
     volumes:

@@ -16,6 +16,7 @@ using Expense.Core.Application.ActivityLogs;
 using Expense.Core.Application.Balances;
 using Expense.Core.Domain.Enums;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 
 namespace Expense.Infrastructure.Settlements
 {
@@ -26,23 +27,28 @@ namespace Expense.Infrastructure.Settlements
         private readonly IBalanceService _balanceService;
         private readonly IRealtimeNotifier _notifier;
         private readonly IValidator<CreateSettlementDto> _createValidator;
+        private readonly ILogger<SettlementService> _logger;
 
         public SettlementService(
             IUnitOfWork unitOfWork, 
             IActivityLogService activityLogService,
             IBalanceService balanceService,
             IRealtimeNotifier notifier,
-            IValidator<CreateSettlementDto> createValidator)
+            IValidator<CreateSettlementDto> createValidator,
+            ILogger<SettlementService> logger)
         {
             _unitOfWork = unitOfWork;
             _activityLogService = activityLogService;
             _balanceService = balanceService;
             _notifier = notifier;
             _createValidator = createValidator;
+            _logger = logger;
         }
 
         public async Task<SettlementDto> CreateSettlementAsync(Guid groupId, string payerUserId, CreateSettlementDto settlementDto, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Create settlement requested. GroupId: {GroupId}, PayerUserId: {PayerUserId}, PayeeUserId: {PayeeUserId}, Amount: {Amount}",
+                groupId, payerUserId, settlementDto.PayeeUserId, settlementDto.Amount);
             await _createValidator.ValidateAndThrowAsync(settlementDto, cancellationToken);
 
             // 1. Validate Group
@@ -108,6 +114,8 @@ namespace Expense.Infrastructure.Settlements
             await _activityLogService.LogActivityAsync(groupId, payerUserId, ActivityType.Created, EntityType.Settlement, settlement.Id.ToString(), $"Amount: {settlement.Amount} {settlement.Currency}", cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("Settlement created. GroupId: {GroupId}, SettlementId: {SettlementId}, PayerUserId: {PayerUserId}, PayeeUserId: {PayeeUserId}, Amount: {Amount}",
+                groupId, settlement.Id, payerUserId, settlement.PayeeUserId, settlement.Amount);
 
             await NotifyGroupMembersAsync(groupId, payerUserId, "Settlement_Created", new { SettlementId = settlement.Id, Amount = settlement.Amount, PayeeId = settlement.PayeeUserId }, cancellationToken);
 
@@ -116,6 +124,7 @@ namespace Expense.Infrastructure.Settlements
 
         public async Task<IEnumerable<SettlementDto>> GetGroupSettlementsAsync(Guid groupId, string userId, CancellationToken cancellationToken = default)
         {
+            _logger.LogDebug("Group settlements requested. GroupId: {GroupId}, RequesterUserId: {RequesterUserId}", groupId, userId);
             if (!await _unitOfWork.Groups.IsMemberAsync(groupId, userId, cancellationToken))
             {
                 throw new GroupAccessDeniedException();
@@ -129,6 +138,8 @@ namespace Expense.Infrastructure.Settlements
 
         public async Task<SettlementDto> GetSettlementAsync(Guid groupId, Guid settlementId, string userId, CancellationToken cancellationToken = default)
         {
+            _logger.LogDebug("Single settlement requested. GroupId: {GroupId}, SettlementId: {SettlementId}, RequesterUserId: {RequesterUserId}",
+                groupId, settlementId, userId);
             if (!await _unitOfWork.Groups.IsMemberAsync(groupId, userId, cancellationToken))
             {
                 throw new GroupAccessDeniedException();
@@ -147,6 +158,8 @@ namespace Expense.Infrastructure.Settlements
 
         public async Task DeleteSettlementAsync(Guid groupId, Guid settlementId, string userId, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Delete settlement requested. GroupId: {GroupId}, SettlementId: {SettlementId}, ActorUserId: {ActorUserId}",
+                groupId, settlementId, userId);
             if (!await _unitOfWork.Groups.IsMemberAsync(groupId, userId, cancellationToken))
             {
                 throw new GroupAccessDeniedException();
@@ -183,6 +196,8 @@ namespace Expense.Infrastructure.Settlements
             await _activityLogService.LogActivityAsync(groupId, userId, ActivityType.Deleted, EntityType.Settlement, settlementId.ToString(), $"Amount: {settlement.Amount} {settlement.Currency}", cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+            _logger.LogInformation("Settlement deleted. GroupId: {GroupId}, SettlementId: {SettlementId}, ActorUserId: {ActorUserId}",
+                groupId, settlementId, userId);
 
             await NotifyGroupMembersAsync(groupId, userId, "Settlement_Deleted", new { SettlementId = settlementId }, cancellationToken);
         }
@@ -209,6 +224,8 @@ namespace Expense.Infrastructure.Settlements
             }
             catch
             {
+                _logger.LogWarning("Settlement notification dispatch skipped due to notifier failure. GroupId: {GroupId}, ActorUserId: {ActorUserId}, Type: {NotificationType}",
+                    groupId, actorUserId, type);
                 // Fire and forget
             }
         }

@@ -8,6 +8,7 @@ using Expense.Infrastructure.Groups;
 using Expense.Infrastructure.Identity;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,7 @@ namespace Expense.UnitTests
         private readonly Mock<IValidator<UpdateGroupMemberRolePatchDto>> _mockPatchValidator;
         private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
         private readonly Mock<IGroupRepository> _mockGroupRepo;
+        private readonly Mock<ILogger<GroupService>> _mockLogger;
         private readonly GroupService _service;
 
         public GroupServiceTests()
@@ -34,6 +36,7 @@ namespace Expense.UnitTests
             _mockNotifier = new Mock<IRealtimeNotifier>();
             _mockPatchValidator = new Mock<IValidator<UpdateGroupMemberRolePatchDto>>();
             _mockGroupRepo = new Mock<IGroupRepository>();
+            _mockLogger = new Mock<ILogger<GroupService>>();
 
             var userStore = new Mock<IUserStore<ApplicationUser>>();
             _mockUserManager = new Mock<UserManager<ApplicationUser>>(userStore.Object, null, null, null, null, null, null, null, null);
@@ -45,7 +48,8 @@ namespace Expense.UnitTests
                 _mockActivityLogService.Object,
                 _mockNotifier.Object,
                 _mockPatchValidator.Object,
-                _mockUserManager.Object);
+                _mockUserManager.Object,
+                _mockLogger.Object);
         }
 
         [Fact]

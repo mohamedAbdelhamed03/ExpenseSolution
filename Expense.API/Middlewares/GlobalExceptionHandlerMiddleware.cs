@@ -43,7 +43,7 @@ namespace Expense.API.Middlewares
             {
                 // Client cancelled the request or task was cancelled - don't log as error
                 // This also catches TaskCanceledException since it inherits from OperationCanceledException
-                _logger.LogInformation("Request or task was cancelled");
+                _logger.LogInformation("Request or task was cancelled. TraceId: {TraceId}", context.TraceIdentifier);
                 if (!context.Response.HasStarted)
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
@@ -51,8 +51,16 @@ namespace Expense.API.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception occurred. Request Path: {Path}, Method: {Method}, TraceId: {TraceId}", 
-                    context.Request.Path, context.Request.Method, context.TraceIdentifier);
+                if (_environment.IsDevelopment())
+                {
+                    _logger.LogError(ex, "An unhandled exception occurred. Request Path: {Path}, Method: {Method}, TraceId: {TraceId}",
+                        context.Request.Path, context.Request.Method, context.TraceIdentifier);
+                }
+                else
+                {
+                    _logger.LogError("An unhandled exception occurred. Request Path: {Path}, Method: {Method}, TraceId: {TraceId}, ExceptionType: {ExceptionType}",
+                        context.Request.Path, context.Request.Method, context.TraceIdentifier, ex.GetType().Name);
+                }
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -73,7 +81,14 @@ namespace Expense.API.Middlewares
             // Handle AggregateException by unwrapping the first inner exception
             if (exception is AggregateException aggEx && aggEx.InnerException != null)
             {
-                _logger.LogError(aggEx, "AggregateException with {Count} inner exceptions, TraceId: {TraceId}", aggEx.InnerExceptions.Count, context.TraceIdentifier);
+                if (_environment.IsDevelopment())
+                {
+                    _logger.LogError(aggEx, "AggregateException with {Count} inner exceptions, TraceId: {TraceId}", aggEx.InnerExceptions.Count, context.TraceIdentifier);
+                }
+                else
+                {
+                    _logger.LogError("AggregateException with {Count} inner exceptions, TraceId: {TraceId}", aggEx.InnerExceptions.Count, context.TraceIdentifier);
+                }
                 await HandleExceptionAsync(context, aggEx.InnerException);
                 return;
             }
@@ -103,7 +118,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "ValidationException: {Message}, TraceId: {TraceId}", validationEx.Message, context.TraceIdentifier);
+                    _logger.LogWarning("Validation failed. ErrorCount: {ErrorCount}, TraceId: {TraceId}", validationErrors.Sum(x => x.Value.Length), context.TraceIdentifier);
                     break;
 
                 case DomainException domainEx:
@@ -128,7 +143,7 @@ namespace Expense.API.Middlewares
                         Meta = new Dictionary<string, object> { { "ErrorCode", domainEx.ErrorCode } }
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "DomainException: {ErrorCode} - {Message}, TraceId: {TraceId}", domainEx.ErrorCode, message, context.TraceIdentifier);
+                    _logger.LogWarning("DomainException. ErrorCode: {ErrorCode}, TraceId: {TraceId}", domainEx.ErrorCode, context.TraceIdentifier);
                     break;
 
                 case ArgumentNullException argNullEx:
@@ -143,7 +158,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "ArgumentNullException: {Message}, TraceId: {TraceId}", argNullEx.Message, context.TraceIdentifier);
+                    _logger.LogWarning("ArgumentNullException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case ArgumentException argEx:
@@ -158,7 +173,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "ArgumentException: {Message}, TraceId: {TraceId}", argEx.Message, context.TraceIdentifier);
+                    _logger.LogWarning("ArgumentException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case KeyNotFoundException:
@@ -173,7 +188,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "KeyNotFoundException: {Message}, TraceId: {TraceId}", exception.Message, context.TraceIdentifier);
+                    _logger.LogWarning("KeyNotFoundException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case UnauthorizedAccessException:
@@ -188,7 +203,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "UnauthorizedAccessException: {Message}, TraceId: {TraceId}", exception.Message, context.TraceIdentifier);
+                    _logger.LogWarning("UnauthorizedAccessException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case InvalidOperationException invalidOpEx:
@@ -203,7 +218,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "InvalidOperationException: {Message}, TraceId: {TraceId}", invalidOpEx.Message, context.TraceIdentifier);
+                    _logger.LogWarning("InvalidOperationException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case TimeoutException:
@@ -218,7 +233,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "TimeoutException: {Message}, TraceId: {TraceId}", exception.Message, context.TraceIdentifier);
+                    _logger.LogWarning("TimeoutException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case FormatException formatEx:
@@ -233,7 +248,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "FormatException: {Message}, TraceId: {TraceId}", formatEx.Message, context.TraceIdentifier);
+                    _logger.LogWarning("FormatException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case NotImplementedException:
@@ -248,7 +263,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "NotImplementedException: {Message}, TraceId: {TraceId}", exception.Message, context.TraceIdentifier);
+                    _logger.LogWarning("NotImplementedException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case BadHttpRequestException badHttpEx:
@@ -263,7 +278,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "BadHttpRequestException: {Message}, TraceId: {TraceId}", badHttpEx.Message, context.TraceIdentifier);
+                    _logger.LogWarning("BadHttpRequestException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case HttpRequestException httpEx:
@@ -278,7 +293,14 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogError(exception, "HttpRequestException: {Message}, TraceId: {TraceId}", httpEx.Message, context.TraceIdentifier);
+                    if (_environment.IsDevelopment())
+                    {
+                        _logger.LogError(exception, "HttpRequestException. TraceId: {TraceId}", context.TraceIdentifier);
+                    }
+                    else
+                    {
+                        _logger.LogError("HttpRequestException. TraceId: {TraceId}", context.TraceIdentifier);
+                    }
                     break;
 
                 case DbUpdateConcurrencyException concurrencyEx:
@@ -293,7 +315,7 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogWarning(exception, "DbUpdateConcurrencyException: {Message}, TraceId: {TraceId}", concurrencyEx.Message, context.TraceIdentifier);
+                    _logger.LogWarning("DbUpdateConcurrencyException. TraceId: {TraceId}", context.TraceIdentifier);
                     break;
 
                 case DbUpdateException dbEx:
@@ -308,7 +330,14 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogError(exception, "DbUpdateException: {Message}, TraceId: {TraceId}", dbEx.Message, context.TraceIdentifier);
+                    if (_environment.IsDevelopment())
+                    {
+                        _logger.LogError(exception, "DbUpdateException. TraceId: {TraceId}", context.TraceIdentifier);
+                    }
+                    else
+                    {
+                        _logger.LogError("DbUpdateException. TraceId: {TraceId}", context.TraceIdentifier);
+                    }
                     break;
 
                 case SqlException sqlEx:
@@ -350,7 +379,14 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogError(exception, "SqlException: {Message}, Error Number: {Number}, TraceId: {TraceId}", sqlEx.Message, sqlEx.Number, context.TraceIdentifier);
+                    if (_environment.IsDevelopment())
+                    {
+                        _logger.LogError(exception, "SqlException. Error Number: {Number}, TraceId: {TraceId}", sqlEx.Number, context.TraceIdentifier);
+                    }
+                    else
+                    {
+                        _logger.LogError("SqlException. Error Number: {Number}, TraceId: {TraceId}", sqlEx.Number, context.TraceIdentifier);
+                    }
                     break;
 
                 case OutOfMemoryException:
@@ -395,8 +431,16 @@ namespace Expense.API.Middlewares
                         TraceId = context.TraceIdentifier
                     };
                     context.Response.StatusCode = statusCode;
-                    _logger.LogError(exception, "Unhandled exception: {Message}\nStackTrace: {StackTrace}, TraceId: {TraceId}", 
-                        exception.Message, exception.StackTrace, context.TraceIdentifier);
+                    if (_environment.IsDevelopment())
+                    {
+                        _logger.LogError(exception, "Unhandled exception: {ExceptionType}, TraceId: {TraceId}",
+                            exception.GetType().Name, context.TraceIdentifier);
+                    }
+                    else
+                    {
+                        _logger.LogError("Unhandled exception: {ExceptionType}, TraceId: {TraceId}",
+                            exception.GetType().Name, context.TraceIdentifier);
+                    }
                     break;
             }
 

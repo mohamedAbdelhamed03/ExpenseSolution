@@ -5,6 +5,10 @@
 - `Content-Type: application/json`
 - `Accept-Language: en` (optional)
 
+## CORS (Frontend Integration)
+- Allowed origins are configured via `AllowedOrigins` (API configuration).
+- Credentials are allowed; frontend must send requests with credentials enabled when needed.
+
 ## Common Error Response Format
 ```json
 {
@@ -238,7 +242,7 @@
 ## Files
 
 ### POST /api/files/upload
-- Description: Upload an image file (e.g. for group or category logo). Returns the public URL.
+- Description: Upload an image file (e.g. for group logo). Returns the public URL.
 - Auth required: Yes
 - Content-Type: multipart/form-data
 - Request body:
@@ -333,7 +337,7 @@
 - Request body:
 ```json
 {
-  "logoUrl": "https://example.com/transport_new.png"
+  "icon": "🚗"
 }
 ```
 
