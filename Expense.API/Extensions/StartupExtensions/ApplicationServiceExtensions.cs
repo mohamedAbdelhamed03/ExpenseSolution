@@ -56,15 +56,19 @@ public static class ApplicationServiceExtensions
         var services = builder.Services;
         var configuration = builder.Configuration;
 
-        services.AddControllers();
-        services.AddFluentValidationAutoValidation();
+        services.AddControllers()
+            .ConfigureApiBehaviorOptions(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
+        // services.AddFluentValidationAutoValidation();
         services.AddFluentValidationClientsideAdapters();
         services.AddCoreValidation();
 
         var coreAssembly = typeof(ValidationBehavior<,>).Assembly;
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(coreAssembly));
 
-        services.AddLocalization(options => options.ResourcesPath = "Resources");
+        services.AddLocalization();
         services.Configure<RequestLocalizationOptions>(options =>
         {
             var supportedCultures = new[] { "en", "ar" };
