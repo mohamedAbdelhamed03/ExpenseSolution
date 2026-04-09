@@ -9,7 +9,7 @@ namespace Expense.Infrastructure.Data
 {
 	public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
 	{
-		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+		public ApplicationDbContext(DbContextOptions options) : base(options)
 		{
 		}
 
@@ -27,6 +27,11 @@ namespace Expense.Infrastructure.Data
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
+
+			var isPostgres = Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true;
+			var amountCheckSql = isPostgres ? "\"Amount\" > 0" : "[Amount] > 0";
+			var googleIdFilterSql = isPostgres ? "\"GoogleId\" IS NOT NULL" : "[GoogleId] IS NOT NULL";
+			var facebookIdFilterSql = isPostgres ? "\"FacebookId\" IS NOT NULL" : "[FacebookId] IS NOT NULL";
 
 			modelBuilder.Entity<RefreshToken>(entity =>
 			{
@@ -60,7 +65,7 @@ namespace Expense.Infrastructure.Data
 				entity.Property(e => e.Date).IsRequired();
 				entity.Property(e => e.CreatedAt).IsRequired();
 				entity.HasIndex(e => e.UserId);
-				entity.ToTable(t => t.HasCheckConstraint("CK_PersonalExpense_Amount_Positive", "[Amount] > 0"));
+				entity.ToTable(t => t.HasCheckConstraint("CK_PersonalExpense_Amount_Positive", amountCheckSql));
 				
 				entity.HasOne(e => e.Category)
 					.WithMany()
@@ -70,8 +75,8 @@ namespace Expense.Infrastructure.Data
 
             modelBuilder.Entity<ApplicationUser>(entity =>
             {
-                entity.HasIndex(u => u.GoogleId).IsUnique().HasFilter("[GoogleId] IS NOT NULL");
-                entity.HasIndex(u => u.FacebookId).IsUnique().HasFilter("[FacebookId] IS NOT NULL");
+                entity.HasIndex(u => u.GoogleId).IsUnique().HasFilter(googleIdFilterSql);
+                entity.HasIndex(u => u.FacebookId).IsUnique().HasFilter(facebookIdFilterSql);
                 entity.Property(u => u.Provider).HasConversion<string>();
             });
 
@@ -111,7 +116,7 @@ namespace Expense.Infrastructure.Data
 					.WithMany(g => g.Expenses)
 					.HasForeignKey(e => e.GroupId)
 					.OnDelete(DeleteBehavior.Cascade);
-				entity.ToTable(t => t.HasCheckConstraint("CK_Expense_Amount_Positive", "[Amount] > 0"));
+				entity.ToTable(t => t.HasCheckConstraint("CK_Expense_Amount_Positive", amountCheckSql));
 				entity.HasOne(e => e.Category)
 					.WithMany()
 					.HasForeignKey(e => e.CategoryId)
@@ -130,7 +135,7 @@ namespace Expense.Infrastructure.Data
 					.WithMany(x => x.Splits)
 					.HasForeignKey(e => e.ExpenseId)
 					.OnDelete(DeleteBehavior.Cascade);
-				entity.ToTable(t => t.HasCheckConstraint("CK_ExpenseSplit_Amount_Positive", "[Amount] > 0"));
+				entity.ToTable(t => t.HasCheckConstraint("CK_ExpenseSplit_Amount_Positive", amountCheckSql));
 
 				entity.HasIndex(e => e.UserId);
 			});
@@ -181,7 +186,7 @@ namespace Expense.Infrastructure.Data
 					.HasForeignKey(e => e.GroupId)
 					.OnDelete(DeleteBehavior.Cascade);
 
-				entity.ToTable(t => t.HasCheckConstraint("CK_Settlement_Amount_Positive", "[Amount] > 0"));
+				entity.ToTable(t => t.HasCheckConstraint("CK_Settlement_Amount_Positive", amountCheckSql));
 
 				entity.HasIndex(e => e.PayerUserId);
 				entity.HasIndex(e => e.PayeeUserId);
