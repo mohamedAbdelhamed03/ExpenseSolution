@@ -21,13 +21,13 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Restore API project
-        run: dotnet restore .\Expense.API\Expense.API.csproj
+        run: dotnet restore .\Expense.API\Expense.API.csproj --runtime win-x64
 
       - name: Build API project
-        run: dotnet build .\Expense.API\Expense.API.csproj --configuration Release --no-restore
+        run: dotnet build .\Expense.API\Expense.API.csproj --configuration Release --runtime win-x64 --no-restore
 
       - name: Publish API project
-        run: dotnet publish .\Expense.API\Expense.API.csproj --configuration Release --no-build --output .\publish --runtime win-x86
+        run: dotnet publish .\Expense.API\Expense.API.csproj --configuration Release --no-build --output .\publish --runtime win-x64
 
       - name: Deploy to MonsterASP via WebDeploy
         uses: rasmusbuchholdt/simply-web-deploy@2.2.0
