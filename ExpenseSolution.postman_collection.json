@@ -1,0 +1,843 @@
+{
+  "info": {
+    "name": "Expense Solution API",
+    "description": "Complete Postman collection for Expense Solution API. Set the `baseUrl` and `accessToken` variables in the environment before running requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "expense-solution-v1"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "groupId", "value": "", "type": "string" },
+    { "key": "expenseId", "value": "", "type": "string" },
+    { "key": "settlementId", "value": "", "type": "string" },
+    { "key": "categoryId", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" },
+    { "key": "personalExpenseId", "value": "", "type": "string" },
+    { "key": "notificationId", "value": "", "type": "string" },
+    { "key": "inviteCode", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "  pm.collectionVariables.set('userId', json.data.userId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"confirmPassword\": \"Password123!\",\n  \"firstName\": \"Sara\",\n  \"lastName\": \"Ahmed\",\n  \"phoneNumber\": \"+201234567890\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "  pm.collectionVariables.set('userId', json.data.userId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Google Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<google_id_token>\",\n  \"provider\": \"Google\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/google", "host": ["{{baseUrl}}"], "path": ["api", "auth", "google"] }
+          }
+        },
+        {
+          "name": "Facebook Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<facebook_access_token>\",\n  \"provider\": \"Facebook\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/facebook", "host": ["{{baseUrl}}"], "path": ["api", "auth", "facebook"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] }
+          }
+        },
+        {
+          "name": "Revoke Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "\"{{refreshToken}}\""
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/revoke-refresh-token", "host": ["{{baseUrl}}"], "path": ["api", "auth", "revoke-refresh-token"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password123!\",\n  \"newPassword\": \"NewPass456!\",\n  \"confirmNewPassword\": \"NewPass456!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/change-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "change-password"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"token\": \"<reset_token_from_email>\",\n  \"newPassword\": \"NewPass456!\",\n  \"confirmNewPassword\": \"NewPass456!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "reset-password"] }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Home Feed",
+      "item": [
+        {
+          "name": "Get Home Feed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/home?page=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "home"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Groups",
+      "item": [
+        {
+          "name": "Create Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "  pm.collectionVariables.set('groupId', json.data.id);",
+                  "  pm.collectionVariables.set('inviteCode', json.data.inviteCode);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Trip to Sinai\",\n  \"logoUrl\": null\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups", "host": ["{{baseUrl}}"], "path": ["api", "groups"] }
+          }
+        },
+        {
+          "name": "Get My Groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups", "host": ["{{baseUrl}}"], "path": ["api", "groups"] }
+          }
+        },
+        {
+          "name": "Get Group",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}"] }
+          }
+        },
+        {
+          "name": "Join Group by Invite Code",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/join/{{inviteCode}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "join", "{{inviteCode}}"] }
+          }
+        },
+        {
+          "name": "Add Member by Email",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newmember@example.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/members", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "members"] }
+          }
+        },
+        {
+          "name": "Update Member Role (Full)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"Admin\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/members/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "members", "{{userId}}"] }
+          }
+        },
+        {
+          "name": "Update Member Role (Partial)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"Member\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/members/{{userId}}/role", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "members", "{{userId}}", "role"] }
+          }
+        },
+        {
+          "name": "Remove Member",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/members/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "members", "{{userId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Create Expense (Equal Split)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "  pm.collectionVariables.set('expenseId', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 300.00,\n  \"currency\": \"EGP\",\n  \"description\": \"Dinner at restaurant\",\n  \"categoryId\": null,\n  \"expenseDate\": \"2026-06-14T20:00:00Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/expenses", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "expenses"] }
+          }
+        },
+        {
+          "name": "Create Expense (Custom Split)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 300.00,\n  \"currency\": \"EGP\",\n  \"description\": \"Dinner at restaurant\",\n  \"categoryId\": null,\n  \"expenseDate\": \"2026-06-14T20:00:00Z\",\n  \"splits\": [\n    { \"userId\": \"<user-id-1>\", \"amount\": 200.00 },\n    { \"userId\": \"<user-id-2>\", \"amount\": 100.00 }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/expenses", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "expenses"] }
+          }
+        },
+        {
+          "name": "List Group Expenses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/expenses", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "expenses"] }
+          }
+        },
+        {
+          "name": "Get Expense",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/expenses/{{expenseId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "expenses", "{{expenseId}}"] }
+          }
+        },
+        {
+          "name": "Update Expense (Full)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 350.00,\n  \"currency\": \"EGP\",\n  \"description\": \"Dinner updated\",\n  \"categoryId\": null,\n  \"expenseDate\": \"2026-06-14T20:00:00Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/expenses/{{expenseId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "expenses", "{{expenseId}}"] }
+          }
+        },
+        {
+          "name": "Update Expense (Partial)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Lunch instead\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/expenses/{{expenseId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "expenses", "{{expenseId}}"] }
+          }
+        },
+        {
+          "name": "Delete Expense",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/expenses/{{expenseId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "expenses", "{{expenseId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Personal Expenses",
+      "item": [
+        {
+          "name": "Create Personal Expense",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "  pm.collectionVariables.set('personalExpenseId', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50.00,\n  \"currency\": \"EGP\",\n  \"date\": \"2026-06-14T08:00:00Z\",\n  \"description\": \"Morning coffee\",\n  \"categoryId\": null\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/personal-expenses", "host": ["{{baseUrl}}"], "path": ["api", "personal-expenses"] }
+          }
+        },
+        {
+          "name": "List Personal Expenses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/personal-expenses?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "personal-expenses"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Personal Expense",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/personal-expenses/{{personalExpenseId}}", "host": ["{{baseUrl}}"], "path": ["api", "personal-expenses", "{{personalExpenseId}}"] }
+          }
+        },
+        {
+          "name": "Update Personal Expense (Full)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 65.00,\n  \"currency\": \"EGP\",\n  \"date\": \"2026-06-14T08:00:00Z\",\n  \"description\": \"Coffee and croissant\",\n  \"categoryId\": null\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/personal-expenses/{{personalExpenseId}}", "host": ["{{baseUrl}}"], "path": ["api", "personal-expenses", "{{personalExpenseId}}"] }
+          }
+        },
+        {
+          "name": "Update Personal Expense (Partial)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 55.00\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/personal-expenses/{{personalExpenseId}}", "host": ["{{baseUrl}}"], "path": ["api", "personal-expenses", "{{personalExpenseId}}"] }
+          }
+        },
+        {
+          "name": "Delete Personal Expense",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/personal-expenses/{{personalExpenseId}}", "host": ["{{baseUrl}}"], "path": ["api", "personal-expenses", "{{personalExpenseId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Balances",
+      "item": [
+        {
+          "name": "Get Group Balances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/balances", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "balances"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settlements",
+      "item": [
+        {
+          "name": "Create Settlement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "  pm.collectionVariables.set('settlementId', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payeeUserId\": \"{{userId}}\",\n  \"amount\": 75.00,\n  \"currency\": \"EGP\",\n  \"exchangeRate\": null,\n  \"settlementDate\": \"2026-06-14T15:00:00Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/settlements", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "settlements"] }
+          }
+        },
+        {
+          "name": "List Settlements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/settlements", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "settlements"] }
+          }
+        },
+        {
+          "name": "Get Settlement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/settlements/{{settlementId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "settlements", "{{settlementId}}"] }
+          }
+        },
+        {
+          "name": "Delete Settlement",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/settlements/{{settlementId}}", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "settlements", "{{settlementId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Debts",
+      "item": [
+        {
+          "name": "Get Simplified Debts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/debts/simplified", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "debts", "simplified"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Insights",
+      "item": [
+        {
+          "name": "Get Group Insights (Monthly)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/insights?period=month&date=2026-06&scope=me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "insights"],
+              "query": [
+                { "key": "period", "value": "month" },
+                { "key": "date", "value": "2026-06" },
+                { "key": "scope", "value": "me" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Group Insights (Yearly)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/insights?period=year&date=2026&scope=group",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "insights"],
+              "query": [
+                { "key": "period", "value": "year" },
+                { "key": "date", "value": "2026" },
+                { "key": "scope", "value": "group" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Group Insights (All Time)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/insights?period=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "insights"],
+              "query": [
+                { "key": "period", "value": "all" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Home Insights (Monthly)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/insights/home?period=month&date=2026-06",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "insights", "home"],
+              "query": [
+                { "key": "period", "value": "month" },
+                { "key": "date", "value": "2026-06" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Home Insights (All Time)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/insights/home?period=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "insights", "home"],
+              "query": [
+                { "key": "period", "value": "all" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List Group Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/categories", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "categories"] }
+          }
+        },
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data) {",
+                  "  pm.collectionVariables.set('categoryId', json.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Entertainment\",\n  \"description\": \"Movies, concerts, events\",\n  \"icon\": \"🎬\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/groups/{{groupId}}/categories", "host": ["{{baseUrl}}"], "path": ["api", "groups", "{{groupId}}", "categories"] }
+          }
+        },
+        {
+          "name": "Update Category (Full)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Entertainment\",\n  \"description\": \"Updated description\",\n  \"icon\": \"🎭\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "categories", "{{categoryId}}"] }
+          }
+        },
+        {
+          "name": "Update Category (Partial)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"icon\": \"🚗\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "categories", "{{categoryId}}"] }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "categories", "{{categoryId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activity Logs",
+      "item": [
+        {
+          "name": "Get Activity Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/groups/{{groupId}}/activities?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "groups", "{{groupId}}", "activities"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/notifications/unread", "host": ["{{baseUrl}}"], "path": ["api", "notifications", "unread"] }
+          }
+        },
+        {
+          "name": "Mark Multiple Notifications as Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notificationIds\": [\n    \"{{notificationId}}\"\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/notifications/mark-read", "host": ["{{baseUrl}}"], "path": ["api", "notifications", "mark-read"] }
+          }
+        },
+        {
+          "name": "Mark Single Notification as Read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["api", "notifications", "{{notificationId}}", "read"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "Upload Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/files/upload", "host": ["{{baseUrl}}"], "path": ["api", "files", "upload"] }
+          }
+        },
+        {
+          "name": "Download File",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/files/download?url=<cloudinary_url>",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "files", "download"],
+              "query": [{ "key": "url", "value": "<cloudinary_url>" }]
+            }
+          }
+        },
+        {
+          "name": "Preview File",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/files/preview?url=<cloudinary_url>",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "files", "preview"],
+              "query": [{ "key": "url", "value": "<cloudinary_url>" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

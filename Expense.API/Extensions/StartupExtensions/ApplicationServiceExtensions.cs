@@ -193,16 +193,17 @@ public static class ApplicationServiceExtensions
 
         services.AddDbContext<ApplicationDbContext>(options =>
         {
-            var provider = configuration["DatabaseProvider"]?.ToLowerInvariant();
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            if (provider == "postgres" || provider == "postgresql")
-            {
-                options.UseNpgsql(connectionString);
-            }
-            else
-            {
-                options.UseSqlServer(connectionString);
-            }
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+            // var provider = configuration["DatabaseProvider"]?.ToLowerInvariant();
+            // var connectionString = configuration.GetConnectionString("DefaultConnection");
+            // if (provider == "postgres" || provider == "postgresql")
+            // {
+            //     options.UseNpgsql(connectionString);
+            // }
+            // else
+            // {
+            //     options.UseSqlServer(connectionString);
+            // }
         });
 
         // Configure Identity
